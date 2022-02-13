@@ -1,2 +1,1 @@
-TOKEN="your telegram bot token"
-SERVER_URL="your server url"
+BOT_TOKEN="your telegram bot token"

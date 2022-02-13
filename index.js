@@ -24,7 +24,9 @@ bot.action('addTokenConfig', addTokenConfig)
 async function setupGroup(ctx) {
   await ctx.reply(
     `Please add me to the group as admin. Once added I'll help you to setup token holders chat room.`,
-    Markup.inlineKeyboard([Markup.button.callback('Add Mars to Group', 'add')])
+    Markup.inlineKeyboard([
+      Markup.button.url('Add Mars to Group', 'http://telegraf.js.org')
+    ])
   )
 }
 
