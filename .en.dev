@@ -1,1 +1,3 @@
 BOT_TOKEN="your telegram bot token"
+BOT_USER_NAME="your bot user name"
+BOT_NAME="your bot name"

@@ -5,7 +5,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 bot.start(async (ctx) => {
   const sender = ctx.from
   const username = sender.username
-  let message = `<b>Welcome to Mars ${username}</b>! I am your bot. I am here to help manage your groups and token holders. Choose below to get started.`
+  let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and token holders. Choose below to get started.`
   ctx.replyWithHTML(
     message,
     Markup.inlineKeyboard([
@@ -25,7 +25,10 @@ async function setupGroup(ctx) {
   await ctx.reply(
     `Please add me to the group as admin. Once added I'll help you to setup token holders chat room.`,
     Markup.inlineKeyboard([
-      Markup.button.url('Add Mars to Group', 'http://telegraf.js.org')
+      Markup.button.url(
+        `Add ${process.env.BOT_NAME} to Group`,
+        `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
+      )
     ])
   )
 }
@@ -69,7 +72,7 @@ Group Name:
 async function showChatInfo(ctx) {
   await ctx.reply(
     `Here is Token Permissioned Chat configuration for __DemoBot__
-Invite others using [Invitation Link](https://telegram.me/botname?start=xxx)`,
+Invite others using [Invitation Link](https://t.me/botname?start=xxx)`,
     {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
