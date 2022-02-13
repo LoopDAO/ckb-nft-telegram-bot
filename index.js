@@ -89,4 +89,9 @@ i.e 0xABCDED 5`,
   )
 }
 
+// register global error handler to prevent the bot from stopping after an exception
+bot.catch((err, ctx) => {
+  console.error(`Ooops, encountered an error for ${ctx.updateType}`, err)
+})
+
 bot.launch()
