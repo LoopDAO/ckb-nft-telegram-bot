@@ -118,7 +118,7 @@ Group Name: ${groupName}
 async function showChatInfo(ctx) {
   // https://core.telegram.org/bots/api#formatting-options
   await ctx.reply(
-    `Here is Token Permissioned Chat configuration for *DemoBot*
+    `Here is Token Permissioned Chat configuration for *${groupName}*
 Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?start=xxx)`,
     {
       parse_mode: 'Markdown',
