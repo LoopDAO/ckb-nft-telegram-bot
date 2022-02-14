@@ -1,6 +1,9 @@
 require('dotenv').config()
 const { Telegraf, Markup } = require('telegraf')
 const bot = new Telegraf(process.env.BOT_TOKEN)
+let userId = ''
+let groupId = ''
+let groupName = ''
 
 bot.start(async (ctx) => {
   console.log('ctx.update.message...', ctx.update.message)
@@ -11,7 +14,7 @@ bot.start(async (ctx) => {
     return await ctx.replyWithHTML(
       message,
       Markup.inlineKeyboard([
-        Markup.button.callback(`Setup Token Holders Group`, 'setup')
+        Markup.button.callback(`😸 Setup Token Holders Group`, 'setup')
       ])
     )
   }
@@ -19,20 +22,23 @@ bot.start(async (ctx) => {
 
   if (startPayload === 'c') {
     const message = `Thank you for adding me to the group. Please make sure to promote me as an administrator.`
+    userId = ctx.from.id
+    groupId = chat.id
+    groupName = chat.title
     await ctx.reply(message)
     await ctx.telegram.sendMessage(
       ctx.from.id,
       message,
       Markup.inlineKeyboard([
-        Markup.button.callback('Config Token Holders Group', 'config')
+        Markup.button.callback('🌸 Config Token Holders Group', 'config')
       ])
     )
+
     // should record group info
   }
 })
 
 bot.action('setup', setupGroup)
-bot.action('add', addBotToGroup)
 bot.action('config', configGroup)
 bot.action('showGroup', showGroupInfo)
 bot.action('showChat', showChatInfo)
@@ -50,24 +56,23 @@ async function setupGroup(ctx) {
   )
 }
 
-async function addBotToGroup(ctx) {
-  // how to get notification when the bot was added to a group
-  await ctx.reply(
-    `Thank you for adding me to the group. Please make sure to promote me as an administrator.`,
-    Markup.inlineKeyboard([
-      Markup.button.callback('Config Token Holders Group', 'config')
-    ])
-  )
-}
-
 async function configGroup(ctx) {
   // how to get all of the groups that use the bot
-  await ctx.reply(
+  console.log('configGroup userId....', userId)
+  await ctx.telegram.sendMessage(
+    userId,
     `Please add me to the group as admin. Once added I'll help you to setup token holders chat room or airdrop.`,
-    Markup.inlineKeyboard([
-      [Markup.button.callback('DemoBot', 'showGroup')],
-      [Markup.button.callback(`Add ${process.env.BOT_NAME} to Group`, 'add')]
-    ])
+    {
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback('DemoBot', 'showGroup')],
+        [
+          Markup.button.url(
+            `Add ${process.env.BOT_NAME} to Group`,
+            `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
+          )
+        ]
+      ])
+    }
   )
 }
 
@@ -75,13 +80,13 @@ async function showGroupInfo(ctx) {
   // get a specific group info
   const message = `Please choose from options below
 
-Group Id:
-Group Name:
+Group Id: ${groupId}
+Group Name: ${groupName}
 `
   await ctx.reply(message, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
-      Markup.button.callback('Token Permissioned Chat', 'showChat')
+      Markup.button.callback('🤠 Token Permissioned Chat', 'showChat')
     ])
   })
 }
@@ -94,7 +99,7 @@ Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
         Markup.button.callback(
-          'Add Token Permissioned Config',
+          '🍀 Add Token Permissioned Config',
           'addTokenConfig'
         )
       ])
