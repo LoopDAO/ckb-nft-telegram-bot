@@ -13,11 +13,17 @@ bot.start(async (ctx) => {
   if (chat.type === 'private') {
     const username = ctx.from.username
     let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and token holders. Choose below to get started.`
+    let inlineButtons = []
+    if (groupId !== '') {
+      inlineButtons = [Markup.button.callback(`🍃 Group Admin`, 'groupAdmin')]
+    } else {
+      inlineButtons = [
+        Markup.button.callback(`😸 Setup Token Holders Group`, 'setup')
+      ]
+    }
     return await ctx.replyWithHTML(
       message,
-      Markup.inlineKeyboard([
-        Markup.button.callback(`😸 Setup Token Holders Group`, 'setup')
-      ])
+      Markup.inlineKeyboard(inlineButtons)
     )
   }
   const startPayload = ctx.startPayload
@@ -42,6 +48,7 @@ bot.start(async (ctx) => {
 
 bot.action('setup', setupGroup)
 bot.action('config', configGroup)
+bot.action('groupAdmin', groupAdmin)
 bot.action('showGroup', showGroupInfo)
 bot.action('showChat', showChatInfo)
 bot.action('addTokenConfig', addTokenConfig)
@@ -78,6 +85,21 @@ async function configGroup(ctx) {
   )
 }
 
+async function groupAdmin(ctx) {
+  await ctx.reply(
+    `Please add me to the group as admin. Once added I'll help you to setup token holders chat room or airdrop.`,
+    Markup.inlineKeyboard([
+      [Markup.button.callback('DemoBot', 'showGroup')],
+      [
+        Markup.button.url(
+          `Add ${process.env.BOT_NAME} to Group`,
+          `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
+        )
+      ]
+    ])
+  )
+}
+
 async function showGroupInfo(ctx) {
   // get a specific group info
   const message = `Please choose from options below
@@ -88,7 +110,7 @@ Group Name: ${groupName}
   await ctx.reply(message, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
-      Markup.button.callback('🤠 Token Permissioned Chat', 'showChat')
+      Markup.button.callback('🌻 Token Permissioned Chat', 'showChat')
     ])
   })
 }
