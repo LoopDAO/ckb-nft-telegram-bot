@@ -18,7 +18,7 @@ bot.start(async (ctx) => {
       inlineButtons = [Markup.button.callback(`🍃 Group Admin`, 'groupAdmin')]
     } else {
       inlineButtons = [
-        Markup.button.callback(`😸 Setup Token Holders Group`, 'setup')
+        Markup.button.callback(`🍋 Setup Token Holders Group`, 'setup')
       ]
     }
     return await ctx.replyWithHTML(
@@ -73,7 +73,7 @@ async function configGroup(ctx) {
     `Please add me to the group as admin. Once added I'll help you to setup token holders chat room or airdrop.`,
     {
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('DemoBot', 'showGroup')],
+        [Markup.button.callback(`🍏 ${groupName}`, 'showGroup')],
         [
           Markup.button.url(
             `Add ${process.env.BOT_NAME} to Group`,
@@ -89,7 +89,7 @@ async function groupAdmin(ctx) {
   await ctx.reply(
     `Please add me to the group as admin. Once added I'll help you to setup token holders chat room or airdrop.`,
     Markup.inlineKeyboard([
-      [Markup.button.callback('DemoBot', 'showGroup')],
+      [Markup.button.callback(`🍏 ${groupName}`, 'showGroup')],
       [
         Markup.button.url(
           `Add ${process.env.BOT_NAME} to Group`,
