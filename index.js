@@ -6,6 +6,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 let userId = ''
 let groupId = ''
 let groupName = ''
+let network = ''
 
 bot.start(async (ctx) => {
   console.log('ctx.update.message...', ctx.update.message)
@@ -52,7 +53,8 @@ bot.action('groupAdmin', groupAdmin)
 bot.action('showGroup', showGroupInfo)
 bot.action('showChat', showChatInfo)
 bot.action('chooseNetwork', chooseNetwork)
-bot.action('selectNft', selectNft)
+bot.action('selectMainnet', selectMainnet)
+bot.action('selectTestnet', selectTestnet)
 bot.action('addTokenConfig', addTokenConfig)
 
 async function setupGroup(ctx) {
@@ -137,18 +139,18 @@ Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?
 async function chooseNetwork(ctx) {
   await ctx.reply(`Please choose Nervos network`, {
     ...Markup.inlineKeyboard([
-      [Markup.button.callback('Lina Mainnet', 'selectNft')],
-      [Markup.button.callback('Aggron Testnet', 'selectNft')]
+      [Markup.button.callback('Lina Mainnet', 'selectMainnet')],
+      [Markup.button.callback('Aggron Testnet', 'selectTestnet')]
     ])
   })
 }
 
-async function selectNft(ctx) {
+async function selectNft(ctx, network) {
   await ctx.reply(
     `Groovy! Let’s configure NFT permission for *${groupName}*
 
 Now, choose what kind of membership you want to add to this community.
-Please choose NFT type for selected chain`,
+Please choose NFT type for selected chain *${network}*`,
     {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
@@ -159,7 +161,18 @@ Please choose NFT type for selected chain`,
   )
 }
 
+async function selectMainnet(ctx) {
+  network = 'Lina Mainnet'
+  await selectNft(ctx, network)
+}
+
+async function selectTestnet(ctx) {
+  network = 'Aggron Testnet'
+  await selectNft(ctx, network)
+}
+
 async function addTokenConfig(ctx) {
+  console.log('addTokenConfig ctx.update...', ctx.update)
   await ctx.reply(
     `Tell me your NFT details in the format below:
 <Contract Address> <Minimum number of NFTs>
