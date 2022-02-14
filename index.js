@@ -14,6 +14,8 @@ let userId = ''
 let groupId = ''
 let groupName = ''
 let network = ''
+let contractAddress = ''
+let minNft = ''
 
 bot.start(async (ctx) => {
   console.log('ctx.update.message...', ctx.update.message)
@@ -190,10 +192,27 @@ async function addTokenConfig(ctx) {
   console.log('addTokenConfig ctx.update...', ctx.update)
   await ctx.reply(
     `Tell me your NFT details in the format below:
-<Contract Address> <Minimum number of NFTs>
-i.e 0xABCDED 5`,
+
+/rule <Contract Address> <Minimum number of NFTs>
+
+for example: /rule 0xABCDED 5`,
     { parse_mode: 'Markdown' }
   )
+}
+
+bot.command('/rule', setNftConfiguration)
+async function setNftConfiguration(ctx) {
+  let params = ctx.message?.text?.split(' ')
+  //check for incorrect usage
+  if (!params || params?.length < 2) {
+    const message = `Usage template: 
+
+*/rule <Contract Address> <Minimum number of NFTs>*`
+    return ctx.replyWithMarkdown(message)
+  }
+  contractAddress = params[1]
+  minNft = Number(params[2])
+  return ctx.reply('Congrats!!! Configuration added.')
 }
 
 // register global error handler to prevent the bot from stopping after an exception
