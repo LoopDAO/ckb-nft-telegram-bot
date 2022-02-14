@@ -1,6 +1,7 @@
 require('dotenv').config()
 const { Telegraf, Markup } = require('telegraf')
 const fs = require('fs')
+const { v4: uuidV4 } = require('uuid')
 
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
@@ -137,10 +138,12 @@ Group Name: ${groupName}
 }
 
 async function showChatInfo(ctx) {
-  // https://core.telegram.org/bots/api#formatting-options
+  // TODO: should bind invite link with nft configuration
   await ctx.reply(
     `Here is NFT Permissioned Chat configuration for *${groupName}*
-Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?start=xxx)`,
+Invite others using [Invitation Link](https://t.me/${
+      process.env.BOT_USER_NAME
+    }?start=${uuidV4()})`,
     {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
