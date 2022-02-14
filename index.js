@@ -3,23 +3,31 @@ const { Telegraf, Markup } = require('telegraf')
 const bot = new Telegraf(process.env.BOT_TOKEN)
 
 bot.start(async (ctx) => {
-  const chat = ctx.update.message.chat
+  console.log('ctx.update.message...', ctx.update.message)
+  const chat = ctx.chat
   if (chat.type === 'private') {
-    const sender = ctx.from
-    const username = sender.username
+    const username = ctx.from.username
     let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and token holders. Choose below to get started.`
-    return ctx.replyWithHTML(
+    return await ctx.replyWithHTML(
       message,
       Markup.inlineKeyboard([
-        Markup.button.callback('Setup Token Holders Group', 'setup')
+        Markup.button.callback(`Setup Token Holders Group`, 'setup')
       ])
     )
   }
   const startPayload = ctx.startPayload
+
   if (startPayload === 'c') {
-    return await ctx.reply(
-      `Thank you for adding me to the group. Please make sure to promote me as an administrator.`
+    const message = `Thank you for adding me to the group. Please make sure to promote me as an administrator.`
+    await ctx.reply(message)
+    await ctx.telegram.sendMessage(
+      ctx.from.id,
+      message,
+      Markup.inlineKeyboard([
+        Markup.button.callback('Config Token Holders Group', 'config')
+      ])
     )
+    // should record group info
   }
 })
 
