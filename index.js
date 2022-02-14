@@ -3,15 +3,24 @@ const { Telegraf, Markup } = require('telegraf')
 const bot = new Telegraf(process.env.BOT_TOKEN)
 
 bot.start(async (ctx) => {
-  const sender = ctx.from
-  const username = sender.username
-  let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and token holders. Choose below to get started.`
-  ctx.replyWithHTML(
-    message,
-    Markup.inlineKeyboard([
-      Markup.button.callback('Setup Token Holders Group', 'setup')
-    ])
-  )
+  const chat = ctx.update.message.chat
+  if (chat.type === 'private') {
+    const sender = ctx.from
+    const username = sender.username
+    let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and token holders. Choose below to get started.`
+    return ctx.replyWithHTML(
+      message,
+      Markup.inlineKeyboard([
+        Markup.button.callback('Setup Token Holders Group', 'setup')
+      ])
+    )
+  }
+  const startPayload = ctx.startPayload
+  if (startPayload === 'c') {
+    return await ctx.reply(
+      `Thank you for adding me to the group. Please make sure to promote me as an administrator.`
+    )
+  }
 })
 
 bot.action('setup', setupGroup)
@@ -49,7 +58,7 @@ async function configGroup(ctx) {
     `Please add me to the group as admin. Once added I'll help you to setup token holders chat room or airdrop.`,
     Markup.inlineKeyboard([
       [Markup.button.callback('DemoBot', 'showGroup')],
-      [Markup.button.callback('Add Mars to Group', 'add')]
+      [Markup.button.callback(`Add ${process.env.BOT_NAME} to Group`, 'add')]
     ])
   )
 }
@@ -72,7 +81,7 @@ Group Name:
 async function showChatInfo(ctx) {
   await ctx.reply(
     `Here is Token Permissioned Chat configuration for __DemoBot__
-Invite others using [Invitation Link](https://t.me/botname?start=xxx)`,
+Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?start=xxx)`,
     {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
