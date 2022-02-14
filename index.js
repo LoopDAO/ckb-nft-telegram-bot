@@ -1,6 +1,12 @@
 require('dotenv').config()
 const { Telegraf, Markup } = require('telegraf')
-const bot = new Telegraf(process.env.BOT_TOKEN)
+
+const token = process.env.BOT_TOKEN
+if (token === undefined) {
+  throw new Error('BOT_TOKEN must be provided!')
+}
+
+const bot = new Telegraf(token)
 
 // should use mongodb to store user's data
 let userId = ''
@@ -22,6 +28,7 @@ bot.start(async (ctx) => {
         Markup.button.callback(`🍋 Setup NFT Holders Group`, 'setup')
       ]
     }
+    // ctx.replyWithVideo('')
     return await ctx.replyWithHTML(
       message,
       Markup.inlineKeyboard(inlineButtons)
