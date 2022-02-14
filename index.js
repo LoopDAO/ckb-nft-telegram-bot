@@ -1,5 +1,6 @@
 require('dotenv').config()
 const { Telegraf, Markup } = require('telegraf')
+const fs = require('fs')
 
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
@@ -28,11 +29,18 @@ bot.start(async (ctx) => {
         Markup.button.callback(`🍋 Setup NFT Holders Group`, 'setup')
       ]
     }
-    // ctx.replyWithVideo('')
-    return await ctx.replyWithHTML(
-      message,
-      Markup.inlineKeyboard(inlineButtons)
+    return await ctx.replyWithAnimation(
+      { source: fs.readFileSync('./assets/robot.gif') },
+      {
+        caption: message,
+        parse_mode: 'HTML',
+        ...Markup.inlineKeyboard(inlineButtons)
+      }
     )
+    // return await ctx.replyWithHTML(
+    //   message,
+    //   Markup.inlineKeyboard(inlineButtons)
+    // )
   }
   const startPayload = ctx.startPayload
 
