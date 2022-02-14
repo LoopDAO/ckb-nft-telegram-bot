@@ -12,13 +12,13 @@ bot.start(async (ctx) => {
   const chat = ctx.chat
   if (chat.type === 'private') {
     const username = ctx.from.username
-    let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and token holders. Choose below to get started.`
+    let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and NFT holders. Choose below to get started.`
     let inlineButtons = []
     if (groupId !== '') {
       inlineButtons = [Markup.button.callback(`🍃 Group Admin`, 'groupAdmin')]
     } else {
       inlineButtons = [
-        Markup.button.callback(`🍋 Setup Token Holders Group`, 'setup')
+        Markup.button.callback(`🍋 Setup NFT Holders Group`, 'setup')
       ]
     }
     return await ctx.replyWithHTML(
@@ -38,7 +38,7 @@ bot.start(async (ctx) => {
       ctx.from.id,
       message,
       Markup.inlineKeyboard([
-        Markup.button.callback('🌸 Config Token Holders Group', 'config')
+        Markup.button.callback('🌸 Config NFT Holders Group', 'config')
       ])
     )
 
@@ -51,11 +51,13 @@ bot.action('config', configGroup)
 bot.action('groupAdmin', groupAdmin)
 bot.action('showGroup', showGroupInfo)
 bot.action('showChat', showChatInfo)
+bot.action('chooseNetwork', chooseNetwork)
+bot.action('selectNft', selectNft)
 bot.action('addTokenConfig', addTokenConfig)
 
 async function setupGroup(ctx) {
   await ctx.reply(
-    `Please add me to the group as admin. Once added I'll help you to setup token holders chat room.`,
+    `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
     Markup.inlineKeyboard([
       Markup.button.url(
         `Add ${process.env.BOT_NAME} to Group`,
@@ -70,7 +72,7 @@ async function configGroup(ctx) {
   console.log('configGroup userId....', userId)
   await ctx.telegram.sendMessage(
     userId,
-    `Please add me to the group as admin. Once added I'll help you to setup token holders chat room or airdrop.`,
+    `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
     {
       ...Markup.inlineKeyboard([
         [Markup.button.callback(`🍏 ${groupName}`, 'showGroup')],
@@ -87,7 +89,7 @@ async function configGroup(ctx) {
 
 async function groupAdmin(ctx) {
   await ctx.reply(
-    `Please add me to the group as admin. Once added I'll help you to setup token holders chat room or airdrop.`,
+    `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
     Markup.inlineKeyboard([
       [Markup.button.callback(`🍏 ${groupName}`, 'showGroup')],
       [
@@ -110,7 +112,7 @@ Group Name: ${groupName}
   await ctx.reply(message, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
-      Markup.button.callback('🌻 Token Permissioned Chat', 'showChat')
+      Markup.button.callback('🌻 NFT Permissioned Chat', 'showChat')
     ])
   })
 }
@@ -118,15 +120,40 @@ Group Name: ${groupName}
 async function showChatInfo(ctx) {
   // https://core.telegram.org/bots/api#formatting-options
   await ctx.reply(
-    `Here is Token Permissioned Chat configuration for *${groupName}*
+    `Here is NFT Permissioned Chat configuration for *${groupName}*
 Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?start=xxx)`,
     {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
         Markup.button.callback(
-          '🍀 Add Token Permissioned Config',
-          'addTokenConfig'
+          '🍀 Add NFT Permissioned Config',
+          'chooseNetwork'
         )
+      ])
+    }
+  )
+}
+
+async function chooseNetwork(ctx) {
+  await ctx.reply(`Please choose Nervos network`, {
+    ...Markup.inlineKeyboard([
+      [Markup.button.callback('Lina Mainnet', 'selectNft')],
+      [Markup.button.callback('Aggron Testnet', 'selectNft')]
+    ])
+  })
+}
+
+async function selectNft(ctx) {
+  await ctx.reply(
+    `Groovy! Let’s configure NFT permission for *${groupName}*
+
+Now, choose what kind of membership you want to add to this community.
+Please choose NFT type for selected chain`,
+    {
+      parse_mode: 'Markdown',
+      ...Markup.inlineKeyboard([
+        Markup.button.callback('NFT-0', 'addTokenConfig'),
+        Markup.button.callback('NFT-1', 'addTokenConfig')
       ])
     }
   )
@@ -134,8 +161,8 @@ Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?
 
 async function addTokenConfig(ctx) {
   await ctx.reply(
-    `Tell me your ERC-20 token details in the format below:
-<Token Contract Address> <Minimum number of tokens>
+    `Tell me your NFT details in the format below:
+<Contract Address> <Minimum number of NFTs>
 i.e 0xABCDED 5`,
     { parse_mode: 'Markdown' }
   )
