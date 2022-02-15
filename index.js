@@ -1,5 +1,5 @@
 require('dotenv').config()
-const { Telegraf, Markup } = require('telegraf')
+const { Telegraf, Markup, registerReferral } = require('telegraf')
 const fs = require('fs')
 const { v4: uuidV4 } = require('uuid')
 
@@ -217,6 +217,10 @@ async function setNftConfiguration(ctx) {
   minNft = Number(params[2])
   return ctx.reply('Congrats!!! Configuration added.')
 }
+
+// when a user wants to join group through invitation link
+// https://core.telegram.org/bots#deep-linking
+bot.hears(/^\/start[ =](.+)$/, (ctx) => registerReferral(ctx.match[1]))
 
 // register global error handler to prevent the bot from stopping after an exception
 bot.catch((err, ctx) => {
