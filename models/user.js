@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-var UserSchema = new Schema(
+const UserSchema = new Schema(
   {
     chatId: {
       type: Number,
@@ -32,4 +32,4 @@ var UserSchema = new Schema(
 
 const User = mongoose.model('User', UserSchema)
 
-export default User
+module.exports = User

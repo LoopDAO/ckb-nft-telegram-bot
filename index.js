@@ -3,6 +3,7 @@ const { Telegraf } = require('telegraf')
 const express = require('express')
 const mongoose = require('mongoose')
 const { registerHandlers } = require('./handlers')
+const { attachUser } = require('./middlewares/attachUser')
 
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
@@ -30,6 +31,7 @@ async function mainService() {
       }
     }
   )
+  bot.use(attachUser)
   // register all bot commands
   await registerHandlers(bot)
 }
