@@ -1,6 +1,7 @@
 require('dotenv').config()
 const { Telegraf } = require('telegraf')
 const express = require('express')
+const mongoose = require('mongoose')
 const { registerHandlers } = require('./handlers')
 
 const token = process.env.BOT_TOKEN
@@ -14,6 +15,21 @@ const secretPath = `/telegraf/${bot.secretPathComponent()}`
 bot.telegram.setWebhook(`${process.env.SERVER_URL}${secretPath}`)
 
 async function mainService() {
+  mongoose.connect(
+    process.env.DB_URL,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    },
+    (err) => {
+      if (err) {
+        console.error(err.message)
+        console.error(err)
+      } else {
+        console.log('Connected to MongoDB')
+      }
+    }
+  )
   // register all bot commands
   await registerHandlers(bot)
 }
