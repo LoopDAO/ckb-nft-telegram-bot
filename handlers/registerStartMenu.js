@@ -1,5 +1,6 @@
 const { Markup } = require('telegraf')
 const fs = require('fs')
+const User = require('../models/user')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
@@ -30,9 +31,6 @@ exports.registerStartMenu = async (bot) => {
 
     if (startPayload === 'c') {
       const message = `Thank you for adding me to the group. Please make sure to promote me as an administrator.`
-      userId = ctx.from.id
-      groupId = chat.id
-      groupName = chat.title
       await ctx.reply(message)
       await ctx.telegram.sendMessage(
         ctx.from.id,

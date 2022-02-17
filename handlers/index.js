@@ -39,9 +39,10 @@ exports.registerHandlers = async (bot) => {
 
   async function configGroup(ctx) {
     // how to get all of the groups that use the bot
-    console.log('configGroup userId....', userId)
+    console.log('ctx.user.groups.....', ctx.user.groups)
+    const groupName = ''
     await ctx.telegram.sendMessage(
-      userId,
+      ctx.user.chatId,
       `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
       {
         ...Markup.inlineKeyboard([
