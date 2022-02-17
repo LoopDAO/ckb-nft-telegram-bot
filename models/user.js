@@ -23,7 +23,8 @@ const UserSchema = new Schema(
             address: String,
             minNumber: Number
           }
-        ]
+        ],
+        _id: false
       }
     ]
   },

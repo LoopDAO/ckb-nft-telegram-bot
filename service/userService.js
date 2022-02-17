@@ -1,8 +1,9 @@
+const e = require('express')
 const User = require('../models/user')
 
 exports.getUserInfo = async (ctx) => {
   try {
-    console.log('ctx', ctx.update)
+    console.log('getUserInfo ctx.update...', ctx.update)
     const chat = ctx.chat
     if (chat.type === 'private') {
       const sender = ctx.from
@@ -21,9 +22,14 @@ exports.getUserInfo = async (ctx) => {
     } else {
       let user = await User.findOne({ chatId: ctx.from?.id })
       if (user) {
-        const groups = [{ groupId: chat.id, groupName: chat.title }]
-        user.groups = groups
-        user = await user.save()
+        let index = user.groups.findIndex((el) => el.groupId === chat.id)
+        if (index === -1) {
+          user.groups = [
+            ...user.groups,
+            { groupId: chat.id, groupName: chat.title }
+          ]
+          user = await user.save()
+        }
       }
       return user
     }
