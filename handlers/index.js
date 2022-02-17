@@ -68,6 +68,7 @@ exports.registerHandlers = async (bot) => {
   bot.action('selectMainnet', selectMainnet)
   bot.action('selectTestnet', selectTestnet)
   bot.action('addTokenConfig', addTokenConfig)
+  bot.action('deleteConfig', deleteConfig)
 
   async function setupGroup(ctx) {
     await ctx.reply(
@@ -197,6 +198,10 @@ for example: /rule 0xABCDED 5`,
     )
   }
 
+  async function deleteConfig(ctx) {
+    await ctx.reply(`Configuration Deleted.`)
+  }
+
   bot.command('/rule', setNftConfiguration)
   async function setNftConfiguration(ctx) {
     let params = ctx.message?.text?.split(' ')
@@ -209,7 +214,29 @@ for example: /rule 0xABCDED 5`,
     }
     contractAddress = params[1]
     minNft = Number(params[2])
-    return ctx.reply('Congrats!!! Configuration added.')
+    await ctx.reply('Congrats!!! Configuration added.')
+    const message = `Here is NFT Permissioned Chat configuration for DemoBot
+Invite others using [Invitation Link]()
+
+Below is list of current configuration.
+
+1. Network: ${network}
+NFT Type: *NFT-0*
+NFT Address: ${contractAddress}
+Min NFT: *${minNft}*
+`
+    await ctx.reply(message, {
+      parse_mode: 'Markdown',
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback('❎ Delete Config 1', 'deleteConfig')],
+        [
+          Markup.button.callback(
+            '🍀 Add NFT Permissioned Config',
+            'chooseNetwork'
+          )
+        ]
+      ])
+    })
   }
 
   // when a user wants to join group through invitation link
