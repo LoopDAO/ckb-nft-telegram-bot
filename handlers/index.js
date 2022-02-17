@@ -16,7 +16,6 @@ exports.registerHandlers = async (bot) => {
 
   bot.action('setup', setupGroup)
   bot.action('config', configGroup)
-  bot.action('groupAdmin', groupAdmin)
   bot.action('showGroup', showGroupInfo)
   bot.action('showChat', showChatInfo)
   bot.action('chooseNetwork', chooseNetwork)
@@ -57,21 +56,6 @@ exports.registerHandlers = async (bot) => {
           ]
         ])
       }
-    )
-  }
-
-  async function groupAdmin(ctx) {
-    await ctx.reply(
-      `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback(`🍏 ${groupName}`, 'showGroup')],
-        [
-          Markup.button.url(
-            `Add ${process.env.BOT_NAME} to Group`,
-            `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
-          )
-        ]
-      ])
     )
   }
 
