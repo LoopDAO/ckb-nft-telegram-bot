@@ -22,7 +22,9 @@ exports.getUserInfo = async (ctx) => {
     } else {
       let user = await User.findOne({ chatId: ctx.from?.id })
       if (user) {
-        let index = user.groups.findIndex((el) => el.groupId === chat.id)
+        let index = user.groups.findIndex(
+          (el) => el.groupId === chat.id.toString()
+        )
         if (index === -1) {
           user.groups = [
             ...user.groups,
