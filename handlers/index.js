@@ -12,6 +12,7 @@ exports.registerHandlers = async (bot) => {
   let groupName = ''
   let network = ''
   let contractAddress = ''
+  let nftType = ''
   let minNft = ''
 
   bot.action('setup', setupGroup)
@@ -19,8 +20,7 @@ exports.registerHandlers = async (bot) => {
   bot.action(/^groups::(\-\d+)::(.+)$/, showGroupInfo)
   bot.action('showChat', showChatInfo)
   bot.action('chooseNetwork', chooseNetwork)
-  bot.action('selectMainnet', selectMainnet)
-  bot.action('selectTestnet', selectTestnet)
+  bot.action(/^network::(.+)$/, showNetworkInfo)
   bot.action('addTokenConfig', addTokenConfig)
   bot.action('deleteConfig', deleteConfig)
 
@@ -103,10 +103,15 @@ Invite others using [Invitation Link](https://t.me/${
   async function chooseNetwork(ctx) {
     await ctx.reply(`Please choose Nervos network`, {
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('Lina Mainnet', 'selectMainnet')],
-        [Markup.button.callback('Aggron Testnet', 'selectTestnet')]
+        [Markup.button.callback('Lina Mainnet', `network::Lina Mainnet`)],
+        [Markup.button.callback('Aggron Testnet', `network::Aggron Testnet`)]
       ])
     })
+  }
+
+  async function showNetworkInfo(ctx) {
+    network = ctx.match[1]
+    await selectNft(ctx, ctx.match[1])
   }
 
   async function selectNft(ctx, network) {
@@ -123,16 +128,6 @@ Please choose NFT type for selected chain *${network}*`,
         ])
       }
     )
-  }
-
-  async function selectMainnet(ctx) {
-    network = 'Lina Mainnet'
-    await selectNft(ctx, network)
-  }
-
-  async function selectTestnet(ctx) {
-    network = 'Aggron Testnet'
-    await selectNft(ctx, network)
   }
 
   async function addTokenConfig(ctx) {
