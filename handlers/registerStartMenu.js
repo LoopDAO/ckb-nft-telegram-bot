@@ -1,6 +1,5 @@
 const { Markup } = require('telegraf')
 const fs = require('fs')
-const User = require('../models/user')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
@@ -39,8 +38,6 @@ exports.registerStartMenu = async (bot) => {
           Markup.button.callback('🌸 Config NFT Holders Group', 'config')
         ])
       )
-
-      // should record group info
     }
   })
 }
