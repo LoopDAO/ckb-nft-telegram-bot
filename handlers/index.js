@@ -220,13 +220,13 @@ Invite others using [Invitation Link]()
 
 Below is list of current configuration.
 
-1. Network: ${network}
-NFT Type: *NFT-0*
-NFT Address: ${contractAddress}
-Min NFT: *${minNft}*
+1. Network: <pre style="color: #ff5500">${network}</pre>
+NFT Type: <b>NFT-0</b>
+NFT Address: <pre style="color: #ff5500">${contractAddress}</pre>
+Min NFT: <b>${minNft}</b>
 `
     await ctx.reply(message, {
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       ...Markup.inlineKeyboard([
         [Markup.button.callback('❎ Delete Config 1', 'deleteConfig')],
         [
