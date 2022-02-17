@@ -43,10 +43,17 @@ exports.registerStartMenu = async (bot) => {
   bot.action('groupAdmin', groupAdmin)
 
   async function groupAdmin(ctx) {
+    console.log('ctx.user.groups.....', ctx.user.groups)
+    const groupList = ctx.user.groups.map((el) => [
+      Markup.button.callback(
+        `🍏 ${el.groupName}`,
+        `groups::${el.groupId}::${el.groupName}`
+      )
+    ])
     await ctx.reply(
       `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
       Markup.inlineKeyboard([
-        [Markup.button.callback(`🍏 ${groupName}`, 'showGroup')],
+        ...groupList,
         [
           Markup.button.url(
             `Add ${process.env.BOT_NAME} to Group`,

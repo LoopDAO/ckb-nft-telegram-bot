@@ -16,7 +16,7 @@ exports.registerHandlers = async (bot) => {
 
   bot.action('setup', setupGroup)
   bot.action('config', configGroup)
-  bot.action('showGroup', showGroupInfo)
+  bot.action(/^groups::(\-\d+)::(.+)$/, showGroupInfo)
   bot.action('showChat', showChatInfo)
   bot.action('chooseNetwork', chooseNetwork)
   bot.action('selectMainnet', selectMainnet)
@@ -39,8 +39,11 @@ exports.registerHandlers = async (bot) => {
   async function configGroup(ctx) {
     // how to get all of the groups that use the bot
     console.log('ctx.user.groups.....', ctx.user.groups)
-    const groupList = ctx.user.groups.map((el) => [
-      Markup.button.callback(`🍏 ${el.groupName}`, 'showGroup')
+    const groupList = ctx.user.groups.map((el, index) => [
+      Markup.button.callback(
+        `🍏 ${el.groupName}`,
+        `groups::${el.groupId}::${el.groupName}`
+      )
     ])
     await ctx.telegram.sendMessage(
       ctx.user.chatId,
@@ -60,12 +63,15 @@ exports.registerHandlers = async (bot) => {
   }
 
   async function showGroupInfo(ctx) {
+    console.log('ctx.match...', ctx.match)
     // get a specific group info
     const message = `Please choose from options below
 
-Group Id: ${groupId}
-Group Name: ${groupName}
+Group Id: ${ctx.match[1]}
+Group Name: ${ctx.match[2]}
 `
+    groupId = ctx.match[1]
+    groupName = ctx.match[2]
     await ctx.reply(message, {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
@@ -75,6 +81,7 @@ Group Name: ${groupName}
   }
 
   async function showChatInfo(ctx) {
+    console.log('showChatInfo ctx....', ctx)
     // TODO: should bind invite link with nft configuration
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
