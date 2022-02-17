@@ -148,6 +148,9 @@ for example: /rule 0xABCDED 5`,
 
   bot.command('/rule', setNftConfiguration)
   async function setNftConfiguration(ctx) {
+    if (ctx.from.id !== ctx.chat.id) {
+      return
+    }
     let params = ctx.message?.text?.split(' ')
     //check for incorrect usage
     if (!params || params?.length < 2) {
