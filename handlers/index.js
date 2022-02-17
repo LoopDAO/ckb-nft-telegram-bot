@@ -14,6 +14,7 @@ exports.registerHandlers = async (bot) => {
   let contractAddress = ''
   let nftType = ''
   let minNft = ''
+  let invitationLink = ''
 
   bot.action('setup', setupGroup)
   bot.action('config', configGroup)
@@ -83,11 +84,10 @@ Group Name: ${ctx.match[2]}
   async function showChatInfo(ctx) {
     console.log('showChatInfo ctx....', ctx)
     // TODO: should bind invite link with nft configuration
+    invitationLink = uuidV4()
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
-Invite others using [Invitation Link](https://t.me/${
-        process.env.BOT_USER_NAME
-      }?start=${uuidV4()})`,
+Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?start=${invitationLink})`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
@@ -161,9 +161,10 @@ for example: /rule 0xABCDED 5`,
     }
     contractAddress = params[1]
     minNft = Number(params[2])
+    // save data to db
     await ctx.reply('Congrats!!! Configuration added.')
     const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
-Invite others using [Invitation Link]()
+Invite others using <a href=${invitationLink}>Invitation Link</a>
 
 Below is list of current configuration.
 
