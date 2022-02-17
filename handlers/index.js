@@ -21,7 +21,7 @@ exports.registerHandlers = async (bot) => {
   bot.action('showChat', showChatInfo)
   bot.action('chooseNetwork', chooseNetwork)
   bot.action(/^network::(.+)$/, showNetworkInfo)
-  bot.action('addTokenConfig', addTokenConfig)
+  bot.action(/^NFT::(.+)$/, addTokenConfig)
   bot.action('deleteConfig', deleteConfig)
 
   async function setupGroup(ctx) {
@@ -123,15 +123,15 @@ Please choose NFT type for selected chain *${network}*`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          Markup.button.callback('NFT-0', 'addTokenConfig'),
-          Markup.button.callback('NFT-1', 'addTokenConfig')
+          Markup.button.callback('NFT-0', 'NFT::NFT-0'),
+          Markup.button.callback('NFT-1', 'NFT::NFT-1')
         ])
       }
     )
   }
 
   async function addTokenConfig(ctx) {
-    console.log('addTokenConfig ctx.update...', ctx.update)
+    nftType = ctx.match[1]
     await ctx.reply(
       `Tell me your NFT details in the format below:
 
@@ -162,13 +162,13 @@ for example: /rule 0xABCDED 5`,
     contractAddress = params[1]
     minNft = Number(params[2])
     await ctx.reply('Congrats!!! Configuration added.')
-    const message = `Here is NFT Permissioned Chat configuration for DemoBot
+    const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
 Invite others using [Invitation Link]()
 
 Below is list of current configuration.
 
 1. Network: <pre style="color: #ff5500">${network}</pre>
-NFT Type: <b>NFT-0</b>
+NFT Type: <b>${nftType}</b>
 NFT Address: <pre style="color: #ff5500">${contractAddress}</pre>
 Min NFT: <b>${minNft}</b>
 `
