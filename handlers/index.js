@@ -84,10 +84,12 @@ Group Name: ${ctx.match[2]}
   async function showChatInfo(ctx) {
     console.log('showChatInfo ctx....', ctx)
     // TODO: should bind invite link with nft configuration
-    invitationLink = uuidV4()
+    invitationLink = `https://t.me/${
+      process.env.BOT_USER_NAME
+    }?start=${uuidV4()}`
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
-Invite others using [Invitation Link](https://t.me/${process.env.BOT_USER_NAME}?start=${invitationLink})`,
+Invite others using [Invitation Link](${invitationLink})`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
@@ -163,8 +165,10 @@ for example: /rule 0xABCDED 5`,
     minNft = Number(params[2])
     // save data to db
     await ctx.reply('Congrats!!! Configuration added.')
+
+    // doc: https://core.telegram.org/bots/api#formatting-options
     const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
-Invite others using <a href=${invitationLink}>Invitation Link</a>
+Invite others using <a href="${invitationLink}">Invitation Link</a>
 
 Below is list of current configuration.
 
