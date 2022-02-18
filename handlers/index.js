@@ -1,7 +1,7 @@
 const { Markup, registerReferral } = require('telegraf')
 const { v4: uuidV4 } = require('uuid')
 const { registerStartMenu } = require('./registerStartMenu')
-const { updateGruopRules } = require('../service/userService')
+const { updateGruopRules, deleteGruopRule } = require('../service/userService')
 
 exports.registerHandlers = async (bot) => {
   console.log('registerHandlers...')
@@ -24,7 +24,7 @@ exports.registerHandlers = async (bot) => {
   bot.action('chooseNetwork', chooseNetwork)
   bot.action(/^network::(.+)$/, showNetworkInfo)
   bot.action(/^NFT::(.+)$/, addTokenConfig)
-  bot.action('deleteConfig', deleteConfig)
+  bot.action(/^deleteConfig::(\-\d+)::(\d+)$/, deleteConfig)
 
   async function setupGroup(ctx) {
     await ctx.reply(
@@ -146,6 +146,9 @@ for example: /rule 0xABCDED 5`,
   }
 
   async function deleteConfig(ctx) {
+    const groupId = ctx.match[1]
+    const configIndex = ctx.match[2]
+    await deleteGruopRule({ chatId: ctx.chat.id, groupId, configIndex })
     await ctx.reply(`Configuration Deleted.`)
   }
 
@@ -178,7 +181,7 @@ for example: /rule 0xABCDED 5`,
     const ruleList = rules.map((el, index) => [
       Markup.button.callback(
         `❎ Delete Config ${index + 1}`,
-        `delete::${index}`
+        `deleteConfig::${groupId}::${index}`
       )
     ])
     const ruleTextList = rules

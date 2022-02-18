@@ -96,3 +96,22 @@ exports.updateGruopRules = async (data) => {
     return newRules
   }
 }
+
+exports.deleteGruopRule = async (data) => {
+  const { chatId, groupId, configIndex } = data
+  let user = await User.findOne({ chatId })
+  if (!user) return
+  console.log('configIndex...', configIndex)
+  if (user) {
+    let group = user.groups.find((el) => el.groupId === groupId)
+    let newRules = [
+      ...group.configurations.slice(0, configIndex),
+      ...group.configurations.slice(configIndex + 1)
+    ]
+    console.log('delete newRules...', newRules)
+    await User.updateOne(
+      { 'chatId': chatId, 'groups.groupId': groupId },
+      { 'groups.$.configurations': newRules }
+    )
+  }
+}
