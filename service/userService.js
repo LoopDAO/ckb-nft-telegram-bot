@@ -1,4 +1,3 @@
-const e = require('express')
 const User = require('../models/user')
 
 exports.getUserInfo = async (ctx) => {
