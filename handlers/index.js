@@ -181,6 +181,16 @@ for example: /rule 0xABCDED 5`,
         `delete::${index}`
       )
     ])
+    const ruleTextList = rules
+      .map((el, index) => {
+        return `${index + 1}. Network: <pre style="color: #ff5500">${
+          el.network
+        }</pre>
+    NFT Type: <b>${el.nftType}</b>
+    NFT Address: <pre style="color: #ff5500">${el.address}</pre>
+    Min NFT: <b>${el.minQuantity}</b>`
+      })
+      .join('\n')
 
     // doc: https://core.telegram.org/bots/api#formatting-options
     const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
@@ -188,10 +198,7 @@ Invite others using <a href="${invitationLink}">Invitation Link</a>
 
 Below is list of current configuration.
 
-1. Network: <pre style="color: #ff5500">${network}</pre>
-NFT Type: <b>${nftType}</b>
-NFT Address: <pre style="color: #ff5500">${contractAddress}</pre>
-Min NFT: <b>${minNft}</b>
+${ruleTextList}
 `
     await ctx.reply(message, {
       parse_mode: 'HTML',
