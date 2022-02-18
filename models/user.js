@@ -1,6 +1,21 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+const ConfigurationSchema = {
+  network: String,
+  nftType: String,
+  address: String,
+  minQuantity: Number,
+  _id: false
+}
+
+const GroupSchema = {
+  groupId: String,
+  groupName: String,
+  configurations: [ConfigurationSchema],
+  _id: false
+}
+
 const UserSchema = new Schema(
   {
     chatId: {
@@ -12,21 +27,7 @@ const UserSchema = new Schema(
     lastName: String,
     isBot: Boolean,
     username: String,
-    groups: [
-      {
-        groupId: String,
-        groupName: String,
-        rules: [
-          {
-            network: String,
-            type: String,
-            address: String,
-            minNumber: Number
-          }
-        ],
-        _id: false
-      }
-    ]
+    groups: [GroupSchema]
   },
   { timestamps: true }
 )

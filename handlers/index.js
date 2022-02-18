@@ -1,6 +1,7 @@
 const { Markup, registerReferral } = require('telegraf')
 const { v4: uuidV4 } = require('uuid')
 const { registerStartMenu } = require('./registerStartMenu')
+const { updateGruopRules } = require('../service/userService')
 
 exports.registerHandlers = async (bot) => {
   console.log('registerHandlers...')
@@ -164,7 +165,22 @@ for example: /rule 0xABCDED 5`,
     contractAddress = params[1]
     minNft = Number(params[2])
     // save data to db
+    const rules = await updateGruopRules({
+      chatId: ctx.chat.id,
+      groupId,
+      network,
+      contractAddress,
+      nftType,
+      minNft
+    })
     await ctx.reply('Congrats!!! Configuration added.')
+
+    const ruleList = rules.map((el, index) => [
+      Markup.button.callback(
+        `❎ Delete Config ${index + 1}`,
+        `delete::${index}`
+      )
+    ])
 
     // doc: https://core.telegram.org/bots/api#formatting-options
     const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
@@ -180,7 +196,7 @@ Min NFT: <b>${minNft}</b>
     await ctx.reply(message, {
       parse_mode: 'HTML',
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('❎ Delete Config 1', 'deleteConfig')],
+        ...ruleList,
         [
           Markup.button.callback(
             '🍀 Add NFT Permissioned Config',
