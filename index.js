@@ -47,7 +47,7 @@ const app = express()
 app.use(bot.webhookCallback(secretPath))
 
 // deal with callback data when user connected wallet
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/api/wallet', (req, res) => res.send('Hello World!'))
 
 app.listen(3000, () => {
   console.log('Example app listening on port 3000!')

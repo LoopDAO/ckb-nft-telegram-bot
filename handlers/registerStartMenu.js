@@ -5,13 +5,35 @@ exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
     const user = ctx.user
     const chat = ctx.chat
+    const startPayload = ctx.startPayload
+
     if (chat.type === 'private') {
-      console.log('ctx...', ctx)
       const username = ctx.from.username
       let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and NFT holders. Choose below to get started.`
       let inlineButtons = []
       if (user?.groups?.length > 0) {
-        inlineButtons = [Markup.button.callback(`🍃 Group Admin`, 'groupAdmin')]
+        if (startPayload) {
+          const group = user.groups.filter(
+            (el) => el.invitationCode === startPayload
+          )[0]
+          if (group) {
+            const id = group.invitationCode
+            const callback = `${process.env.SERVER_URL}/api/wallet`
+            return ctx.reply(
+              `${group.groupName} is NFT holders chat room.`,
+              Markup.inlineKeyboard([
+                Markup.button.url(
+                  `Connect`,
+                  `${process.env.CONNECT_WALLET_URL}?id=${id}&callbackURL=${callback}`
+                )
+              ])
+            )
+          }
+        } else {
+          inlineButtons = [
+            Markup.button.callback(`🍃 Group Admin`, 'groupAdmin')
+          ]
+        }
       } else {
         inlineButtons = [
           Markup.button.callback(`🍋 Setup NFT Holders Group`, 'setup')
@@ -26,7 +48,6 @@ exports.registerStartMenu = async (bot) => {
         }
       )
     }
-    const startPayload = ctx.startPayload
 
     if (startPayload === 'c') {
       const message = `Thank you for adding me to the group. Please make sure to promote me as an administrator.`
