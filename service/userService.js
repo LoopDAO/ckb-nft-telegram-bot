@@ -2,7 +2,6 @@ const User = require('../models/user')
 
 exports.getUserInfo = async (ctx) => {
   try {
-    console.log('getUserInfo ctx.update...', ctx.update)
     const chat = ctx.chat
     if (chat.type === 'private') {
       const sender = ctx.from
@@ -41,7 +40,6 @@ exports.getUserInfo = async (ctx) => {
 
 exports.updateGruopRules = async (data) => {
   const { chatId, groupId, network, nftType, contractAddress, minNft } = data
-  console.log('updateGruopRules data...', data)
   let user = await User.findOne({ chatId })
   if (!user) return
   if (user) {
@@ -88,7 +86,6 @@ exports.updateGruopRules = async (data) => {
         return el
       })
     }
-    console.log('newRules...', newRules)
     await User.updateOne(
       { 'chatId': chatId, 'groups.groupId': groupId },
       { 'groups.$.configurations': newRules }

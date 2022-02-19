@@ -4,11 +4,9 @@ const { registerStartMenu } = require('./registerStartMenu')
 const { updateGruopRules, deleteGruopRule } = require('../service/userService')
 
 exports.registerHandlers = async (bot) => {
-  console.log('registerHandlers...')
   await registerStartMenu(bot)
 
   // should use mongodb to store user's data
-  let userId = ''
   let groupId = ''
   let groupName = ''
   let network = ''
@@ -40,7 +38,6 @@ exports.registerHandlers = async (bot) => {
 
   async function configGroup(ctx) {
     // how to get all of the groups that use the bot
-    console.log('ctx.user.groups.....', ctx.user.groups)
     const groupList = ctx.user.groups.map((el, index) => [
       Markup.button.callback(
         `🍏 ${el.groupName}`,
@@ -88,6 +85,7 @@ Group Name: ${ctx.match[2]}
     invitationLink = `https://t.me/${
       process.env.BOT_USER_NAME
     }?start=${uuidV4()}`
+
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
 Invite others using [Invitation Link](${invitationLink})`,

@@ -3,7 +3,6 @@ const fs = require('fs')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
-    console.log('ctx.user...', ctx.user)
     const user = ctx.user
     const chat = ctx.chat
     if (chat.type === 'private') {
@@ -43,7 +42,6 @@ exports.registerStartMenu = async (bot) => {
   bot.action('groupAdmin', groupAdmin)
 
   async function groupAdmin(ctx) {
-    console.log('ctx.user.groups.....', ctx.user.groups)
     const groupList = ctx.user.groups.map((el) => [
       Markup.button.callback(
         `🍏 ${el.groupName}`,
