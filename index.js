@@ -2,6 +2,7 @@ require('dotenv').config()
 const { Telegraf } = require('telegraf')
 const express = require('express')
 const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
 const { registerHandlers } = require('./handlers')
 const { attachUser } = require('./middlewares/attachUser')
 
@@ -43,11 +44,35 @@ bot.catch((err, ctx) => {
 })
 
 const app = express()
+app.use(bodyParser.json())
+
 // Set the bot API endpoint
 app.use(bot.webhookCallback(secretPath))
 
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
 // deal with callback data when user connected wallet
-app.get('/api/wallet', (req, res) => res.send('Hello World!'))
+app.post('/api/wallet', (req, res) => {
+  const { id, address } = req.body
+  const { chatId, groupName } = id
+  /*
+   send below message to a user who wanna join when bot is checking if the user's address has required nfts. Here will use ckb api to do the job
+  */
+  bot.telegram.sendMessage(chatId, 'Processing!!! Please wait...')
+
+  // send below message if a user is approved to join group
+  // save address to database
+  bot.telegram.createChatInviteLink()
+  bot.telegram.sendMessage(chatId, `Welcome to ${groupName}`, {
+    ...Markup.inlineKeyboard([
+      Markup.button.url(`Join Group`, `https://t.me/${groupName}`)
+    ])
+  })
+
+  res.status(200)
+})
 
 app.listen(3000, () => {
   console.log('Example app listening on port 3000!')

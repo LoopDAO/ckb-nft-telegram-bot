@@ -3,6 +3,7 @@ const fs = require('fs')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
+    console.log('ctx.update...', ctx.update)
     const user = ctx.user
     const chat = ctx.chat
     const startPayload = ctx.startPayload
@@ -51,6 +52,8 @@ exports.registerStartMenu = async (bot) => {
 
     if (startPayload === 'c') {
       const message = `Thank you for adding me to the group. Please make sure to promote me as an administrator.`
+      console.log('add to group ctx...', ctx.update.message.chat)
+
       await ctx.reply(message)
       await ctx.telegram.sendMessage(
         ctx.from.id,
