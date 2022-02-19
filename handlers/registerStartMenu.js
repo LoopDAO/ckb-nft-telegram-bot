@@ -10,39 +10,37 @@ exports.registerStartMenu = async (bot) => {
     const startPayload = ctx.startPayload
 
     if (chat.type === 'private') {
+      if (startPayload && startPayload !== 'c') {
+        const group = user.groups.filter(
+          (el) => el.invitationCode === startPayload
+        )[0]
+        if (group) {
+          const data = {
+            userId: ctx.from.id,
+            groupName: group.groupName,
+            groupId: group.groupId
+          }
+          console.log('construct id data...', data)
+          const id = base64.encodeURL(JSON.stringify(data))
+          console.log('base64 id...', id)
+          const callback = `${process.env.SERVER_URL}/api/wallet`
+          return ctx.reply(
+            `${group.groupName} is NFT holders chat room.`,
+            Markup.inlineKeyboard([
+              Markup.button.url(
+                `Connect`,
+                `${process.env.CONNECT_WALLET_URL}?id=${id}&callbackURL=${callback}`
+              )
+            ])
+          )
+        }
+      }
+
       const username = ctx.from.username
       let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and NFT holders. Choose below to get started.`
       let inlineButtons = []
       if (user?.groups?.length > 0) {
-        if (startPayload) {
-          const group = user.groups.filter(
-            (el) => el.invitationCode === startPayload
-          )[0]
-          if (group) {
-            const data = {
-              userId: ctx.from.id,
-              groupName: group.groupName,
-              groupId: group.groupId
-            }
-            console.log('construct id data...', data)
-            const id = base64.encodeURL(JSON.stringify(data))
-            console.log('base64 id...', id)
-            const callback = `${process.env.SERVER_URL}/api/wallet`
-            return ctx.reply(
-              `${group.groupName} is NFT holders chat room.`,
-              Markup.inlineKeyboard([
-                Markup.button.url(
-                  `Connect`,
-                  `${process.env.CONNECT_WALLET_URL}?id=${id}&callbackURL=${callback}`
-                )
-              ])
-            )
-          }
-        } else {
-          inlineButtons = [
-            Markup.button.callback(`🍃 Group Admin`, 'groupAdmin')
-          ]
-        }
+        inlineButtons = [Markup.button.callback(`🍃 Group Admin`, 'groupAdmin')]
       } else {
         inlineButtons = [
           Markup.button.callback(`🍋 Setup NFT Holders Group`, 'setup')
