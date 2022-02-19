@@ -1,9 +1,10 @@
 const { Markup } = require('telegraf')
 const fs = require('fs')
+const base64 = require('js-base64')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
-    console.log('ctx.update...', ctx.update)
+    console.log('ctx.update...', ctx.update.message)
     const user = ctx.user
     const chat = ctx.chat
     const startPayload = ctx.startPayload
@@ -18,7 +19,14 @@ exports.registerStartMenu = async (bot) => {
             (el) => el.invitationCode === startPayload
           )[0]
           if (group) {
-            const id = group.invitationCode
+            const data = {
+              userId: ctx.from.id,
+              groupName: group.groupName,
+              groupId: group.groupId
+            }
+            console.log('construct id data...', data)
+            const id = base64.encodeURL(JSON.stringify(data))
+            console.log('base64 id...', id)
             const callback = `${process.env.SERVER_URL}/api/wallet`
             return ctx.reply(
               `${group.groupName} is NFT holders chat room.`,

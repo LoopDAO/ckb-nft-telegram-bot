@@ -1,8 +1,9 @@
 require('dotenv').config()
-const { Telegraf } = require('telegraf')
+const { Telegraf, Markup } = require('telegraf')
 const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const base64 = require('js-base64')
 const { registerHandlers } = require('./handlers')
 const { attachUser } = require('./middlewares/attachUser')
 
@@ -54,24 +55,37 @@ app.get('/', (req, res) => {
 })
 
 // deal with callback data when user connected wallet
-app.post('/api/wallet', (req, res) => {
+app.post('/api/wallet', async (req, res) => {
   const { id, address } = req.body
-  const { chatId, groupName } = id
+  if (!id || !address)
+    return res.json({
+      ok: false,
+      error_code: 400,
+      description: 'invalid params'
+    })
+  const chatInfo = JSON.parse(base64.decode(id))
+  const { userId, groupName, groupId } = chatInfo
   /*
    send below message to a user who wanna join when bot is checking if the user's address has required nfts. Here will use ckb api to do the job
   */
-  bot.telegram.sendMessage(chatId, 'Processing!!! Please wait...')
+  await bot.telegram.sendMessage(userId, 'Processing!!! Please wait...')
+
+  // TODO: save address to database
 
   // send below message if a user is approved to join group
-  // save address to database
-  bot.telegram.createChatInviteLink()
-  bot.telegram.sendMessage(chatId, `Welcome to ${groupName}`, {
-    ...Markup.inlineKeyboard([
-      Markup.button.url(`Join Group`, `https://t.me/${groupName}`)
-    ])
-  })
+  try {
+    // should check if a user had joined to the group
+    await bot.telegram.approveChatJoinRequest(groupId, userId)
+  } catch (err) {
+    console.log('err', err.response)
+  }
 
-  res.status(200)
+  /* I'm not sure how to properly create the link of Join Group, and I think it is not right here to use the private invitation link of a group, because it will expose a group to sunshine.
+   */
+  await bot.telegram.sendMessage(userId, `Welcome to ${groupName}`, {
+    ...Markup.inlineKeyboard([Markup.button.url(`Join Group`, `https://t.me/`)])
+  })
+  return res.json({ ok: true })
 })
 
 app.listen(3000, () => {
