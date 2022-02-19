@@ -13,12 +13,11 @@ exports.registerHandlers = async (bot) => {
   let contractAddress = ''
   let nftType = ''
   let minNft = ''
-  let invitationLink = ''
 
   bot.action('setup', setupGroup)
   bot.action('config', configGroup)
   bot.action(/^groups::(\-\d+)::(.+)$/, showGroupInfo)
-  bot.action('showChat', showChatInfo)
+  bot.action(/showChat::(\-\d+)/, showChatInfo)
   bot.action('chooseNetwork', chooseNetwork)
   bot.action(/^network::(.+)$/, showNetworkInfo)
   bot.action(/^NFT::(.+)$/, addTokenConfig)
@@ -62,7 +61,6 @@ exports.registerHandlers = async (bot) => {
   }
 
   async function showGroupInfo(ctx) {
-    console.log('ctx.match...', ctx.match)
     // get a specific group info
     const message = `Please choose from options below
 
@@ -74,17 +72,18 @@ Group Name: ${ctx.match[2]}
     await ctx.reply(message, {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
-        Markup.button.callback('🌻 NFT Permissioned Chat', 'showChat')
+        Markup.button.callback(
+          '🌻 NFT Permissioned Chat',
+          `showChat::${groupId}`
+        )
       ])
     })
   }
 
   async function showChatInfo(ctx) {
-    console.log('showChatInfo ctx....', ctx)
-    // TODO: should bind invite link with nft configuration
-    invitationLink = `https://t.me/${
-      process.env.BOT_USER_NAME
-    }?start=${uuidV4()}`
+    const group = ctx.user.groups.filter((el) => el.groupId === ctx.match[1])[0]
+
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationLink}`
 
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
@@ -151,6 +150,7 @@ for example: /rule 0xABCDED 5`,
   }
 
   bot.command('/rule', setNftConfiguration)
+
   async function setNftConfiguration(ctx) {
     if (ctx.from.id !== ctx.chat.id) {
       return
@@ -193,6 +193,10 @@ for example: /rule 0xABCDED 5`,
       })
       .join('\n')
 
+    const group = ctx.user.groups.filter((el) => el.groupId === groupId)[0]
+
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationLink}`
+
     // doc: https://core.telegram.org/bots/api#formatting-options
     const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
 Invite others using <a href="${invitationLink}">Invitation Link</a>
@@ -215,7 +219,7 @@ ${ruleTextList}
     })
   }
 
-  // when a user wants to join group through invitation link
+  // when a user wants to chat with this bot through invitation link
   // https://core.telegram.org/bots#deep-linking
   bot.hears(/^\/start[ =](.+)$/, (ctx) => registerReferral(ctx.match[1]))
 

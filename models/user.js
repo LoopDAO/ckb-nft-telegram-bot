@@ -13,6 +13,7 @@ const GroupSchema = {
   groupId: String,
   groupName: String,
   configurations: [ConfigurationSchema],
+  invitationCode: String,
   _id: false
 }
 

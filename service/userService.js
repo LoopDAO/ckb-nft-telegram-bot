@@ -1,4 +1,5 @@
 const User = require('../models/user')
+const { v4: uuidV4 } = require('uuid')
 
 exports.getUserInfo = async (ctx) => {
   try {
@@ -26,7 +27,11 @@ exports.getUserInfo = async (ctx) => {
         if (index === -1) {
           user.groups = [
             ...user.groups,
-            { groupId: chat.id, groupName: chat.title }
+            {
+              groupId: chat.id,
+              groupName: chat.title,
+              invitationCode: uuidV4()
+            }
           ]
           user = await user.save()
         }
