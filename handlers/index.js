@@ -1,5 +1,4 @@
 const { Markup, registerReferral } = require('telegraf')
-const { v4: uuidV4 } = require('uuid')
 const { registerStartMenu } = require('./registerStartMenu')
 const { updateGruopRules, deleteGruopRule } = require('../service/userService')
 
@@ -83,7 +82,7 @@ Group Name: ${ctx.match[2]}
   async function showChatInfo(ctx) {
     const group = ctx.user.groups.filter((el) => el.groupId === ctx.match[1])[0]
 
-    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationLink}`
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationCode}`
 
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
@@ -195,7 +194,7 @@ for example: /rule 0xABCDED 5`,
 
     const group = ctx.user.groups.filter((el) => el.groupId === groupId)[0]
 
-    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationLink}`
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationCode}`
 
     // doc: https://core.telegram.org/bots/api#formatting-options
     const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>

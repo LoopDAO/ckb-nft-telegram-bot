@@ -6,6 +6,7 @@ exports.registerStartMenu = async (bot) => {
     const user = ctx.user
     const chat = ctx.chat
     if (chat.type === 'private') {
+      console.log('ctx...', ctx)
       const username = ctx.from.username
       let message = `<b>Welcome to ${process.env.BOT_NAME} ${username}</b>! I am your bot. I am here to help manage your groups and NFT holders. Choose below to get started.`
       let inlineButtons = []
