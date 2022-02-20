@@ -1,6 +1,6 @@
 const { Markup, registerReferral } = require('telegraf')
 const { registerStartMenu } = require('./registerStartMenu')
-const { updateGruopRules, deleteGruopRule } = require('../service/userService')
+const { updateGruopRules, deleteGroupRule } = require('../service/userService')
 
 exports.registerHandlers = async (bot) => {
   await registerStartMenu(bot)
@@ -144,7 +144,7 @@ for example: /rule 0xABCDED 5`,
   async function deleteConfig(ctx) {
     const groupId = ctx.match[1]
     const configIndex = ctx.match[2]
-    await deleteGruopRule({ chatId: ctx.chat.id, groupId, configIndex })
+    await deleteGroupRule({ chatId: ctx.chat.id, groupId, configIndex })
     await ctx.reply(`Configuration Deleted.`)
   }
 

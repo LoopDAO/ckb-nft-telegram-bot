@@ -99,7 +99,7 @@ exports.updateGruopRules = async (data) => {
   }
 }
 
-exports.deleteGruopRule = async (data) => {
+exports.deleteGroupRule = async (data) => {
   const { chatId, groupId, configIndex } = data
   let user = await User.findOne({ chatId })
   if (!user) return
