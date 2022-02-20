@@ -1,7 +1,7 @@
 const { Markup } = require('telegraf')
 const fs = require('fs')
-const base64 = require('js-base64')
 const { getGroupInfo } = require('../service/userService')
+const jwt = require('jsonwebtoken')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
@@ -19,14 +19,14 @@ exports.registerStartMenu = async (bot) => {
             groupName: group.groupName,
             groupId: group.groupId
           }
-          const id = base64.encodeURL(JSON.stringify(data))
           const callback = `${process.env.SERVER_URL}/api/wallet`
+          const token = jwt.sign(data, process.env.TOKEN_SECRET)
           return ctx.reply(
             `${group.groupName} is NFT holders chat room.`,
             Markup.inlineKeyboard([
               Markup.button.url(
                 `Connect`,
-                `${process.env.CONNECT_WALLET_URL}?id=${id}&callbackURL=${callback}`
+                `${process.env.CONNECT_WALLET_URL}?id=${token}&callbackURL=${callback}`
               )
             ])
           )
