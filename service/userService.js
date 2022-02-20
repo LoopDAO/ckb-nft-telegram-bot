@@ -118,4 +118,12 @@ exports.deleteGruopRule = async (data) => {
   }
 }
 
+exports.getGroupInfo = async (invitationCode) => {
+  const user = await User.findOne({ 'groups.invitationCode': invitationCode })
+  const group = user.groups.filter(
+    (el) => el.invitationCode === invitationCode
+  )[0]
+  if (group) return group
+}
+
 exports.saveMemberInfo = async (data) => {}
