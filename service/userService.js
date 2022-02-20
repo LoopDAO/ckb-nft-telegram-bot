@@ -117,3 +117,5 @@ exports.deleteGruopRule = async (data) => {
     )
   }
 }
+
+exports.saveMemberInfo = async (data) => {}
