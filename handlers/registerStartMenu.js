@@ -2,6 +2,7 @@ const { Markup } = require('telegraf')
 const fs = require('fs')
 const { getGroupInfo } = require('../service/userService')
 const jwt = require('jsonwebtoken')
+const { generateSignMessageURL } = require('@nervina-labs/flashsigner')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
@@ -19,16 +20,13 @@ exports.registerStartMenu = async (bot) => {
             groupName: group.groupName,
             groupId: group.groupId
           }
-          const callback = `${process.env.SERVER_URL}/api/wallet`
+          const successURL = `${process.env.SERVER_URL}/api/wallet`
           const token = jwt.sign(data, process.env.TOKEN_SECRET)
+          const url = generateSignMessageURL(successURL, { message: token })
+          console.log('generate url...', url)
           return ctx.reply(
             `${group.groupName} is NFT holders chat room.`,
-            Markup.inlineKeyboard([
-              Markup.button.url(
-                `Connect`,
-                `${process.env.CONNECT_WALLET_URL}?id=${token}&callbackURL=${callback}`
-              )
-            ])
+            Markup.inlineKeyboard([Markup.button.url(`Connect`, url)])
           )
         }
       }
