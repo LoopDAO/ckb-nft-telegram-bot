@@ -1,5 +1,6 @@
-const User = require('../models/user')
 const { v4: uuidV4 } = require('uuid')
+const User = require('../models/user')
+const Member = require('../models/member')
 
 exports.getUserInfo = async (ctx) => {
   try {
@@ -15,7 +16,7 @@ exports.getUserInfo = async (ctx) => {
           isBot: sender?.is_bot,
           chatId: ctx.chat?.id
         })
-        user = await new User(userModel).save()
+        user = await userModel.save()
       }
       return user
     } else {
@@ -126,4 +127,14 @@ exports.getGroupInfo = async (invitationCode) => {
   if (group) return group
 }
 
-exports.saveMemberInfo = async (data) => {}
+exports.saveMemberInfo = async (data) => {
+  try {
+    let member = await Member.findOne({ userId: data.userId })
+    if (!member) {
+      const memberModal = new Member(data)
+      await memberModal.save()
+    }
+  } catch (err) {
+    console.log('saveMemberInfo err...', err)
+  }
+}

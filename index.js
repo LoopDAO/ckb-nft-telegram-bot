@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const { registerHandlers } = require('./handlers')
 const { attachUser } = require('./middlewares/attachUser')
+const { saveMemberInfo } = require('./service/userService')
 // const { getResultFromURL } = require('@nervina-labs/flashsigner')
 const { scriptToAddress } = require('@nervosnetwork/ckb-sdk-utils')
 const jwt = require('jsonwebtoken')
@@ -78,8 +79,7 @@ app.get('/api/wallet', async (req, res) => {
   */
       await bot.telegram.sendMessage(userId, 'Processing!!! Please wait...')
 
-      // TODO: save address to database
-
+      await saveMemberInfo({ ...decoded, walletAddress: address })
       // send below message if a user is approved to join group
       try {
         // should check if a user had joined to the group

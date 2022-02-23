@@ -3,7 +3,7 @@ const Schema = mongoose.Schema
 
 const MemberSchema = new Schema(
   {
-    chatId: {
+    userId: {
       type: String,
       required: true,
       unique: true
@@ -12,7 +12,8 @@ const MemberSchema = new Schema(
     lastName: String,
     isBot: Boolean,
     walletAddress: String,
-    groupId: String
+    groupId: String,
+    groupName: String
   },
   { timestamps: true }
 )

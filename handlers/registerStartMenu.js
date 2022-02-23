@@ -15,8 +15,12 @@ exports.registerStartMenu = async (bot) => {
       if (startPayload && startPayload !== 'c') {
         const group = await getGroupInfo(startPayload)
         if (group) {
+          const sender = ctx.from
           const data = {
-            userId: ctx.from.id,
+            userId: sender.id,
+            firstName: sender?.first_name,
+            lastName: sender?.last_name,
+            isBot: sender?.is_bot,
             groupName: group.groupName,
             groupId: group.groupId
           }
