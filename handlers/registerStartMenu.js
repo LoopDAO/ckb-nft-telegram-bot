@@ -26,7 +26,10 @@ exports.registerStartMenu = async (bot) => {
           }
           const successURL = `${process.env.SERVER_URL}/api/wallet`
           const token = jwt.sign(data, process.env.TOKEN_SECRET)
-          const url = generateSignMessageURL(successURL, { message: token })
+          const url = generateSignMessageURL(successURL, {
+            message: token,
+            isRaw: true
+          })
           console.log('generate url...', url)
           return ctx.reply(
             `${group.groupName} is NFT holders chat room.`,

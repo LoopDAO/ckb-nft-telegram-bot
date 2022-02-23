@@ -6,9 +6,8 @@ const bodyParser = require('body-parser')
 const { registerHandlers } = require('./handlers')
 const { attachUser } = require('./middlewares/attachUser')
 const { saveMemberInfo } = require('./service/userService')
-// const { getResultFromURL } = require('@nervina-labs/flashsigner')
-const { scriptToAddress } = require('@nervosnetwork/ckb-sdk-utils')
 const jwt = require('jsonwebtoken')
+const { validateSignature, getWalletAddress } = require('./utils')
 
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
@@ -62,14 +61,17 @@ app.get('/api/wallet', async (req, res) => {
   const { flashsigner_data } = req.query
   const data = JSON.parse(flashsigner_data)
   if (data.code === 200) {
+    console.log('data.result', data.result)
     try {
       const { lock, message, sig } = data.result
       console.log('lock...', lock)
-      const address = scriptToAddress({
-        codeHash: lock.code_hash,
-        hashType: lock.hash_type,
-        args: lock.args
-      })
+
+      const isValidSig = validateSignature(message, sig)
+      if (!isValidSig) {
+        return res.send('Your signature is not valid!')
+      }
+
+      const address = getWalletAddress(sig)
       console.log('address...', address)
 
       const decoded = jwt.verify(message, process.env.TOKEN_SECRET)
@@ -95,7 +97,7 @@ app.get('/api/wallet', async (req, res) => {
           Markup.button.url(`Join Group`, `https://t.me/`)
         ])
       })
-      return res.send('Your data is signed!')
+      return res.send('Your signature is valid!')
     } catch (err) {
       console.log('verify message err...', err)
     }
