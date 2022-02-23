@@ -129,7 +129,10 @@ exports.getGroupInfo = async (invitationCode) => {
 
 exports.saveMemberInfo = async (data) => {
   try {
-    let member = await Member.findOne({ userId: data.userId })
+    let member = await Member.findOne({
+      userId: data.userId,
+      groupId: data.groupId
+    })
     if (!member) {
       const memberModal = new Member(data)
       await memberModal.save()
