@@ -8,6 +8,8 @@ const { attachUser } = require('./middlewares/attachUser')
 const { saveMemberInfo } = require('./service/userService')
 const jwt = require('jsonwebtoken')
 const { validateSignature, getWalletAddress } = require('./utils')
+const cron = require('node-cron')
+const cota = require('./service/cotaService')
 
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
@@ -15,6 +17,7 @@ if (token === undefined) {
 }
 
 const bot = new Telegraf(token)
+console.log('bot...', bot)
 const secretPath = `/telegraf/${bot.secretPathComponent()}`
 // Set telegram webhook
 bot.telegram.setWebhook(`${process.env.SERVER_URL}${secretPath}`)
@@ -38,6 +41,11 @@ async function mainService() {
   bot.use(attachUser)
   // register all bot commands
   await registerHandlers(bot)
+
+  // cronjob to update discord roles once a day
+  cron.schedule('0 0 * * *', () => {
+    cota.banGroupMembers(bot)
+  })
 }
 mainService()
 
@@ -71,8 +79,8 @@ app.get('/api/wallet', async (req, res) => {
         return res.send('Your signature is not valid!')
       }
 
-      const address = getWalletAddress(sig)
-      console.log('address...', address)
+      // TODO: use testnet address
+      let address = getWalletAddress(sig)
 
       const decoded = jwt.verify(message, process.env.TOKEN_SECRET)
       const { userId, groupName, groupId } = decoded
@@ -81,23 +89,44 @@ app.get('/api/wallet', async (req, res) => {
   */
       await bot.telegram.sendMessage(userId, 'Processing!!! Please wait...')
 
-      await saveMemberInfo({ ...decoded, walletAddress: address })
-      // send below message if a user is approved to join group
-      try {
-        // should check if a user had joined to the group
-        await bot.telegram.approveChatJoinRequest(groupId, userId)
-      } catch (err) {
-        console.log('err', err.response)
+      const cotaCount = await cota.isQualified(address, groupId)
+      if (cotaCount > 0) {
+        await saveMemberInfo({ ...decoded, walletAddress: address })
+        // send below message if a user is approved to join group
+        try {
+          // check if the user is a member of this group
+          await bot.telegram.getChatMember(groupId, userId)
+        } catch (err) {
+          if (
+            err.response &&
+            err.response.description === 'Bad Request: user not found'
+          ) {
+            try {
+              await bot.telegram.approveChatJoinRequest(groupId, userId)
+            } catch (err) {
+              await bot.telegram.sendMessage(
+                userId,
+                `Sorry, you could not join ${groupName}`
+              )
+              return res.send(`Sorry, you could not join ${groupName}`)
+            }
+          }
+        }
+        const chat = await bot.telegram.getChat(groupId)
+        console.log('chat...', chat)
+        await bot.telegram.sendMessage(userId, `Welcome to ${groupName}`, {
+          ...Markup.inlineKeyboard([
+            Markup.button.url(`Join Group`, `${chat.invite_link}`)
+          ])
+        })
+        return res.send(`Welcome to ${groupName}`)
+      } else {
+        await bot.telegram.sendMessage(
+          userId,
+          `Sorry, you could not join ${groupName}`
+        )
+        return res.send(`Sorry, you could not join ${groupName}`)
       }
-
-      /* I'm not sure how to properly create the link of Join Group, and I think it is not right here to use the private invitation link of a group, because it will expose a group to sunshine.
-       */
-      await bot.telegram.sendMessage(userId, `Welcome to ${groupName}`, {
-        ...Markup.inlineKeyboard([
-          Markup.button.url(`Join Group`, `https://t.me/`)
-        ])
-      })
-      return res.send('Your signature is valid!')
     } catch (err) {
       console.log('verify message err...', err)
     }

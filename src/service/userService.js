@@ -44,8 +44,9 @@ exports.getUserInfo = async (ctx) => {
   }
 }
 
-exports.updateGruopRules = async (data) => {
+exports.updateGroupRules = async (data) => {
   const { chatId, groupId, network, nftType, contractAddress, minNft } = data
+  console.log('groupId...', groupId)
   let user = await User.findOne({ chatId })
   if (!user) return
   if (user) {
@@ -139,5 +140,59 @@ exports.saveMemberInfo = async (data) => {
     }
   } catch (err) {
     console.log('saveMemberInfo err...', err)
+  }
+}
+
+exports.saveMemberInfo = async (data) => {
+  try {
+    let member = await Member.findOne({
+      userId: data.userId,
+      groupId: data.groupId
+    })
+    if (!member) {
+      const memberModal = new Member(data)
+      await memberModal.save()
+    }
+  } catch (err) {
+    console.log('saveMemberInfo err...', err)
+  }
+}
+
+exports.getGroupMembers = async (groupId) => {
+  try {
+    return await Member.find({ groupId })
+  } catch (err) {
+    console.log('getGroups err...', err)
+  }
+}
+
+exports.getGroups = async (data) => {
+  try {
+    let users = await User.find()
+    if (users) {
+      let groups = users.reduce((sum, el) => {
+        if (el.groups.length > 0) {
+          return [...sum, ...el.groups]
+        }
+        return sum
+      }, [])
+      return groups
+    }
+  } catch (err) {
+    console.log('getGroups err...', err)
+  }
+}
+
+exports.getGroupRules = async (groupId) => {
+  try {
+    let user = await User.findOne({ 'groups.groupId': groupId })
+    console.log('user...', user)
+    if (user) {
+      console.log('user.groups...', user.groups)
+      const group = user.groups.filter((el) => el.groupId === groupId)[0]
+      return group?.configurations
+    }
+  } catch (err) {
+    console.log('getGroupRules err...', err)
   }
 }

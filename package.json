@@ -2,9 +2,10 @@
   "name": "ckb-nft-telegram-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./src/index.js",
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc8",
+    "@nervina-labs/cota-sdk": "^0.4.4",
     "@nervina-labs/flashsigner": "^0.2.2",
     "@nervosnetwork/ckb-sdk-rpc": "^0.102.1",
     "@nervosnetwork/ckb-sdk-utils": "^0.102.1",
@@ -16,6 +17,7 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.2.1",
+    "node-cron": "^3.0.0",
     "node-rsa": "^1.1.1",
     "telegraf": "^4.7.0",
     "uuid": "^8.3.2"
@@ -25,8 +27,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node ./src/index.js",
+    "dev": "nodemon ./src/index.js"
   },
   "license": "ISC"
 }

@@ -2,10 +2,14 @@ const { Markup } = require('telegraf')
 const fs = require('fs')
 const { getGroupInfo } = require('../service/userService')
 const jwt = require('jsonwebtoken')
-const { generateSignMessageURL } = require('@nervina-labs/flashsigner')
+const { generateSignMessageURL, Config } = require('@nervina-labs/flashsigner')
 
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
+    // this config doesn't work
+    // const chainType = process.env.CHAIN_TYPE || 'testnet'
+    // Config.setChainType(chainType)
+
     console.log('ctx.update...', ctx.update.message)
     const user = ctx.user
     const chat = ctx.chat
@@ -26,6 +30,7 @@ exports.registerStartMenu = async (bot) => {
           }
           const successURL = `${process.env.SERVER_URL}/api/wallet`
           const token = jwt.sign(data, process.env.TOKEN_SECRET)
+
           const url = generateSignMessageURL(successURL, {
             message: token,
             isRaw: true
@@ -49,7 +54,7 @@ exports.registerStartMenu = async (bot) => {
         ]
       }
       return await ctx.replyWithAnimation(
-        { source: fs.readFileSync('./assets/robot.gif') },
+        { source: fs.readFileSync('./src/assets/robot.gif') },
         {
           caption: message,
           parse_mode: 'HTML',

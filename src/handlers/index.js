@@ -1,11 +1,11 @@
 const { Markup, registerReferral } = require('telegraf')
 const { registerStartMenu } = require('./registerStartMenu')
-const { updateGruopRules, deleteGroupRule } = require('../service/userService')
+const { updateGroupRules, deleteGroupRule } = require('../service/userService')
 
 exports.registerHandlers = async (bot) => {
   await registerStartMenu(bot)
 
-  // should use mongodb to store user's data
+  // TODO: should use mongodb to store user's data
   let groupId = ''
   let groupName = ''
   let network = ''
@@ -157,7 +157,7 @@ for example: /rule 0xABCDED 5`,
     let params = ctx.message?.text?.split(' ')
     //check for incorrect usage
     if (!params || params?.length < 2) {
-      const message = `Usage template: 
+      const message = `Usage template:
 
 */rule <Contract Address> <Minimum number of NFTs>*`
       return ctx.replyWithMarkdown(message)
@@ -165,7 +165,7 @@ for example: /rule 0xABCDED 5`,
     contractAddress = params[1]
     minNft = Number(params[2])
     // save data to db
-    const rules = await updateGruopRules({
+    const rules = await updateGroupRules({
       chatId: ctx.chat.id,
       groupId,
       network,
