@@ -81,7 +81,7 @@ app.get('/api/wallet', async (req, res) => {
 
       // TODO: use testnet address
       let address = getWalletAddress(sig)
-
+      console.log('address....', address)
       const decoded = jwt.verify(message, process.env.TOKEN_SECRET)
       const { userId, groupName, groupId } = decoded
       /*

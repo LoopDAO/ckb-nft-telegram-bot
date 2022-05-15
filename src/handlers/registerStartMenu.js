@@ -4,11 +4,16 @@ const { getGroupInfo } = require('../service/userService')
 const jwt = require('jsonwebtoken')
 const { generateSignMessageURL, Config } = require('@nervina-labs/flashsigner')
 
+const mainnetURL = 'https://flashsigner.com'
+const testnetURL = 'https://staging.flashsigner.work'
+
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
-    // this config doesn't work
-    // const chainType = process.env.CHAIN_TYPE || 'testnet'
-    // Config.setChainType(chainType)
+    const chainType = process.env.CHAIN_TYPE || 'testnet'
+    const network = chainType === 'mainnet' ? mainnetURL : testnetURL
+    console.log('network...', network)
+    Config.setFlashsignerURL(network)
+    Config.setChainType(chainType)
 
     console.log('ctx.update...', ctx.update.message)
     const user = ctx.user
