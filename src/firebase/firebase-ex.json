@@ -1,0 +1,14 @@
+{
+  "type": "service_account",
+  "project_id": "telegram-bot-2405c",
+  "private_key_id": "44d3b6e5db3b65140ccff2720146df1fecef4a88",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-lzbom@telegram-bot-2405c.iam.gserviceaccount.com",
+  "client_id": "115543081723893064568",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-lzbom%40telegram-bot-2405c.iam.gserviceaccount.com"
+
+  
+}

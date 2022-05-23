@@ -15,7 +15,8 @@ exports.registerHandlers = async (bot) => {
   // TODO: should use mongodb to store user's data
   let groupId = ""
   let groupName = ""
-  let network = process.env.CHAIN_TYPE=='testnet'? "Aggron Testnet": "Lina Mainnet"
+  let network =
+    process.env.CHAIN_TYPE == "testnet" ? "Aggron Testnet" : "Lina Mainnet"
   let contractAddress = ""
   let nftType = "NFT-0"
   let minNft = ""
@@ -92,7 +93,6 @@ Group Name: ${ctx.match[2]}
     )[0]
     const invitationCode = await getInvitationByGroupId(groupId)
     const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${invitationCode}`
-    console.log("invitationLink:", invitationLink)
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
 Invite others using [Invitation Link](${invitationLink})`,
@@ -203,17 +203,18 @@ for example: /rule 0xABCDED 5`,
     await ctx.reply(`Configuration Deleted.`)
     const rules = []
     if (group.configurations) {
-        group.configurations.forEach((el) => {
-            rules.push(el)
-            })
+      group.configurations.forEach((el) => {
+        rules.push(el)
+      })
     }
     viewGroupTokenConfig(ctx, rules)
   }
 
   bot.command("/rule", setNftConfiguration)
+  bot.command("/rules", getNftConfiguration)
 
   async function setNftConfiguration(ctx) {
-    console.log("setNftConfiguration:", ctx.message.text)
+    console.log("command:", ctx.message.text)
     if (ctx.from.id !== ctx.chat.id) {
       return
     }
@@ -245,7 +246,25 @@ for example: /rule 0xABCDED 5`,
     await ctx.reply("Congrats!!! Configuration added.")
     viewGroupTokenConfig(ctx, rules)
   }
-
+  async function getNftConfiguration(ctx) {
+    console.log("command:", ctx.message.text)
+    if (ctx.from.id !== ctx.chat.id) {
+      return
+    }
+    ctx.user.groups.filter(
+        async (groupId) => {
+            const group = await getGroupInfoById(groupId)
+            const rules = []
+            if (group.configurations) {
+              console.log("groupName:", group.groupName)
+              group.configurations.forEach((el) => {
+                rules.push(el)
+              })
+              viewGroupTokenConfig(ctx, rules)
+            }
+        }
+    )
+  }
   // when a user wants to chat with this bot through invitation link
   // https://core.telegram.org/bots#deep-linking
   bot.hears(/^\/start[ =](.+)$/, (ctx) => registerReferral(ctx.match[1]))

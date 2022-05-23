@@ -3,7 +3,6 @@ const { UserFirestore } = require("./../shared/firestoreTypes")
 const {
   getUser,
   setUser,
-  getUserByInvitationCode,
   getUserByInvitedGroupId,
   updateGroup,
   addInvitationInfo,
@@ -31,7 +30,7 @@ exports.getUserInfo = async (ctx) => {
         }
         user = await setUser(ctx.chat?.id, u)
         console.log("save user...", user)
-      } else console.log("get user...", user.data())
+      }
 
       return user.data()
     } else {
@@ -198,10 +197,9 @@ exports.getGroupRules = async (_groupId) => {
     if (user) {
       const groupId = user.groups.filter((el) => el === _groupId)[0]
       const group = await getGroupInfoById(groupId)
-      console.log("group...", group)
       return group?.configurations
     }
   } catch (err) {
-    console.log("getGroupRules err...", err)
+    console.error("getGroupRules err...", err)
   }
 }

@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken')
 const { validateSignature, getWalletAddress } = require('./utils')
 const cron = require('node-cron')
 const cota = require('./service/cotaService')
+const {isFirestoreAvialable} = require('./firebase/index.ts')
 
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
@@ -23,41 +24,44 @@ const bot = new Telegraf(token, {
         agent: agent
     }
 })
-console.log('bot...', bot)
-
-//bot.start((ctx) => ctx.reply('Welcome'))
-// bot.help((ctx) => ctx.reply('Send me a sticker'))
-// bot.on('sticker', (ctx) => ctx.reply('👍'))
-// bot.hears('hi', (ctx) => ctx.reply('Hey there'))
-// bot.launch()
+//console.log('bot...', bot)
+console.log('proxy...', proxyUrl)
 
 const secretPath = `/telegraf/${bot.secretPathComponent()}`
 // Set telegram webhook
 bot.telegram.setWebhook(`${process.env.SERVER_URL}${secretPath}`)
 console.log('process.env.SERVER_URL...', process.env.SERVER_URL)
-console.log('secretPath...', process.env.secretPath)
+console.log('secretPath...',secretPath)
 
 async function mainService() {
-    mongoose.connect(
-        process.env.DB_URL,
-        {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        },
-        (err) => {
-            if (err) {
-                console.error(err.message)
-                console.error(err)
-            } else {
-                console.log('Connected to MongoDB')
-            }
+    if (process.env.FIRESTORE_ENABLE) {
+        if (!(await isFirestoreAvialable())) {
+            console.err('Firestore is not available!')
+            return
         }
-    )
+        console.log('Connected to Firestore!')
+    } else {
+        mongoose.connect(
+            process.env.MONGODB_URL,
+            {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            },
+            (err) => {
+                if (err) {
+                    console.error(err.message)
+                    console.error(err)
+                } else {
+                    console.log('Connected to MongoDB')
+                }
+            }
+        )
+    }
     bot.use(attachUser)
     // register all bot commands
     await registerHandlers(bot)
 
-    // cronjob to update discord roles once a day
+    // cronjob to update roles once a day
     cron.schedule('0 0 * * *', () => {
         cota.banGroupMembers(bot)
     })
@@ -76,7 +80,7 @@ app.use(bodyParser.json())
 app.use(bot.webhookCallback(secretPath))
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
+    res.send('Hello Everybody!')
 })
 
 // deal with callback data when user connected wallet
@@ -86,13 +90,10 @@ app.get('/api/wallet', async (req, res) => {
         console.log('flashsigner_data is undefined')
         return res.status(400).send('Missing flashsigner_data')
     }
-    console.log("flashsigner_data...", flashsigner_data)
     const data = JSON.parse(flashsigner_data)
     if (data.code === 200) {
-        console.log('data.result', data.result)
         try {
             const { lock, message, sig } = data.result
-            console.log('lock...', lock)
 
             const isValidSig = validateSignature(message, sig)
             if (!isValidSig) {
@@ -101,7 +102,7 @@ app.get('/api/wallet', async (req, res) => {
 
             // TODO: use testnet address
             let address = getWalletAddress(sig)
-            console.log('address....', address)
+            console.log('sign address....', address)
             const decoded = jwt.verify(message, process.env.TOKEN_SECRET)
             const { userId, groupName, groupId } = decoded
             /*
@@ -133,7 +134,6 @@ app.get('/api/wallet', async (req, res) => {
                     }
                 }
                 const chat = await bot.telegram.getChat(groupId)
-                console.log('chat...', chat)
                 await bot.telegram.sendMessage(userId, `Welcome to ${groupName}`, {
                     ...Markup.inlineKeyboard([
                         Markup.button.url(`Join Group`, `${chat.invite_link}`)
@@ -153,6 +153,7 @@ app.get('/api/wallet', async (req, res) => {
     }
 })
 
-app.listen(3000, () => {
-    console.log('ckb-nft-telegram-bot app listening on port 3000!')
+const PORT = process.env.LISTEN_PORT || 3000
+app.listen(PORT, () => {
+    console.log(`ckb-nft-telegram-bot app listening on port ${PORT}!`)
 })

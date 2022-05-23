@@ -11,19 +11,19 @@ const testnetURL = "https://staging.flashsigner.work"
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
     const chainType = process.env.CHAIN_TYPE || "testnet"
-    const network = chainType === "mainnet" ? mainnetURL : testnetURL
-    console.log("network...", network)
+      const network = chainType === "mainnet" ? mainnetURL : testnetURL
+      
     Config.setFlashsignerURL(network)
     Config.setChainType(chainType)
 
-    console.log("ctx.update...", ctx.update.message)
+    //console.log("ctx.update...", ctx.update.message)
     const user = ctx.user
     const chat = ctx.chat
     const startPayload = ctx.startPayload
+    console.log("command:/start",user.lastName+'.'+user.firstName,chat.type)
 
     if (chat.type === "private") {
       if (startPayload && startPayload !== "c") {
-        console.log("startPayload...", startPayload)
         const group = await getGroupByInvitationCode(startPayload)
         if (group) {
           const sender = ctx.from
@@ -42,7 +42,6 @@ exports.registerStartMenu = async (bot) => {
             message: token,
             isRaw: true,
           })
-          console.log("generate url...", url)
           return ctx.reply(
             `${group.groupName} is NFT holders chat room.`,
             Markup.inlineKeyboard([Markup.button.url(`Connect`, url)])

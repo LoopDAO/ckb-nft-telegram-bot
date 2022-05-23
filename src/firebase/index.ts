@@ -1,35 +1,23 @@
-//import { initializeApp, cert } from 'firebase-admin/app';
-
 const { UserFirestore } = require('../shared/firestoreTypes.js')
-
 const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore')
 const serviceAccount = require("./firebase.json")
 const { initializeApp, cert, arrayContains } = require('firebase-admin/app')
-//const { query, where } =require ("firebase/firestore");
 const firebaseConfig = {
     credential: cert(serviceAccount)
 }
-// Initialize Firestore through Firebase
-// const { initializeApp:initializeApp2 } =require("firebase/app")
-// const { getFirestore:getFirestore2 } = require("firebase/firestore")
-// const firebaseApp = initializeApp({
-//   apiKey: '### FIREBASE API KEY ###',
-//   authDomain: '### FIREBASE AUTH DOMAIN ###',
-//   projectId: 'telegram-bot-2405c'
-// });
-
-// const app2 = initializeApp2(firebaseApp)
-// const db = getFirestore2(app2);
-
 const app = initializeApp(firebaseConfig)
 const dbFirebase = getFirestore(app)
-// Get a list of cities from your database
-// async function getCities(db) {
-//   const citiesCol = collection(db, 'cities');
-//   const citySnapshot = await getDocs(citiesCol);
-//   const cityList = citySnapshot.docs.map(doc => doc.data());
-//   return cityList;
-// }
+
+async function isFirestoreAvialable() {
+    return new Promise((resolve, reject) => {
+        dbFirebase.collection("Users").get().then(() => {
+            resolve(true)
+        }).catch(() => {
+            resolve(false)
+        })
+    })
+}
+
 async function getUser(chatId) {
     const user = await dbFirebase
         .collection("Users")
@@ -37,13 +25,15 @@ async function getUser(chatId) {
         .get()
     return user
 }
+
 async function getGroupsList() {
     const groups = await dbFirebase
         .collection("Groups")
         .get()
     return groups
 }
-async function getMember(userId,groupId) {
+
+async function getMember(userId, groupId) {
     return new Promise(resolve => {
         var Query = dbFirebase.collectionGroup('Members')
             .where('groupId', '==', parseInt(groupId))
@@ -62,6 +52,7 @@ async function getMember(userId,groupId) {
         })
     })
 }
+
 function getUserByInvitedGroupId(groupId) {
     return new Promise(resolve => {
         var Query = dbFirebase.collectionGroup('Users').where('groups', 'array-contains', parseInt(groupId))
@@ -78,39 +69,6 @@ function getUserByInvitedGroupId(groupId) {
         })
     })
 }
-function getUserByInvitationCode(invitationCode) {
-    return new Promise(resolve => {
-        const group = {
-            groupId: -1001687679986,
-            groupName: "rostraGroupTest123",
-            invitationCode: invitationCode,
-        }
-        var Query = dbFirebase.collectionGroup('Users').where('groups', 'array-contains', group)
-        Query.get().then(snapshot => {
-            console.log("snapshot--:", snapshot)
-            if (snapshot.empty) {
-                resolve(undefined)
-            }
-            snapshot.forEach(subDoc => {
-                resolve(subDoc.data())
-            })
-        })
-    })
-}
-async function getUserByInvitationCode2(invitationCode) {
-    const group = {
-        groupId: -1001687679986,
-        groupName: "rostraGroupTest123",
-        invitationCode: invitationCode,
-    }
-    let Q = await dbFirebase.collectionGroup('Users').where('groups', 'array-contains', group)
-    const users = await Q.get()
-    await users.forEach(doc => {
-        console.log(doc.id, '=>', doc.data())
-        return doc.data()
-    })
-    return undefined
-}
 async function setUser(chatId, data) {
     const user = await dbFirebase
         .collection("Users")
@@ -125,16 +83,8 @@ async function setMember(userId, data) {
         .set(data)
     return member
 }
-// async function getGroupInfoById(groupId){
-//     const group = await dbFirebase
-//         .collectionGroup("Groups").where('groupId', '==', groupId)
-//         .get()
-//     await group.forEach(doc => {
-//         return doc.data()
-//     })
-//     return undefined
-// }
-async function getGroupInfoById(groupId){
+
+async function getGroupInfoById(groupId) {
     return new Promise(resolve => {
         var Query = dbFirebase.collectionGroup('Groups').where('groupId', '==', parseInt(groupId))
         Query.get().then(snapshot => {
@@ -158,7 +108,7 @@ async function getInvitationInfo(code) {
 async function getInvitationByGroupId(groupId) {
     return new Promise(resolve => {
         var Query = dbFirebase.collectionGroup('Invitations').where('groupId', '==', groupId)
-        
+
         Query.get().then(snapshot => {
             if (snapshot.empty) {
                 resolve(undefined)
@@ -200,11 +150,11 @@ async function addInvitationInfo(code, userId, groupId) {
 
 
 module.exports = {
+    isFirestoreAvialable,
     getUser,
     setUser,
     getMember,
     setMember,
-    getUserByInvitationCode,
     getUserByInvitedGroupId,
     addInvitationInfo,
     updateGroup,
