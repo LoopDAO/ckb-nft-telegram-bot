@@ -1,23 +1,30 @@
-const { Markup, registerReferral } = require('telegraf')
-const { registerStartMenu } = require('./registerStartMenu')
-const { updateGroupRules, deleteGroupRule } = require('../service/userService')
+const { Markup, registerReferral } = require("telegraf")
+const { registerStartMenu } = require("./registerStartMenu")
+const {
+  getGroupInfoById,
+  getInvitationByGroupId,
+} = require("../firebase/index.ts")
+const {
+  updateGroupRules,
+  deleteGroupRule,
+} = require("../service/userService.ts")
 
 exports.registerHandlers = async (bot) => {
   await registerStartMenu(bot)
 
   // TODO: should use mongodb to store user's data
-  let groupId = ''
-  let groupName = ''
-  let network = ''
-  let contractAddress = ''
-  let nftType = ''
-  let minNft = ''
+  let groupId = ""
+  let groupName = ""
+  let network = process.env.CHAIN_TYPE=='testnet'? "Aggron Testnet": "Lina Mainnet"
+  let contractAddress = ""
+  let nftType = "NFT-0"
+  let minNft = ""
 
-  bot.action('setup', setupGroup)
-  bot.action('config', configGroup)
+  bot.action("setup", setupGroup)
+  bot.action("config", configGroup)
   bot.action(/^groups::(\-\d+)::(.+)$/, showGroupInfo)
   bot.action(/showChat::(\-\d+)/, showChatInfo)
-  bot.action('chooseNetwork', chooseNetwork)
+  bot.action("chooseNetwork", chooseNetwork)
   bot.action(/^network::(.+)$/, showNetworkInfo)
   bot.action(/^NFT::(.+)$/, addTokenConfig)
   bot.action(/^deleteConfig::(\-\d+)::(\d+)$/, deleteConfig)
@@ -29,7 +36,7 @@ exports.registerHandlers = async (bot) => {
         Markup.button.url(
           `Add ${process.env.BOT_NAME} to Group`,
           `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
-        )
+        ),
       ])
     )
   }
@@ -40,7 +47,7 @@ exports.registerHandlers = async (bot) => {
       Markup.button.callback(
         `🍏 ${el.groupName}`,
         `groups::${el.groupId}::${el.groupName}`
-      )
+      ),
     ])
     await ctx.telegram.sendMessage(
       ctx.user.chatId,
@@ -52,9 +59,9 @@ exports.registerHandlers = async (bot) => {
             Markup.button.url(
               `Add ${process.env.BOT_NAME} to Group`,
               `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
-            )
-          ]
-        ])
+            ),
+          ],
+        ]),
       }
     )
   }
@@ -69,32 +76,34 @@ Group Name: ${ctx.match[2]}
     groupId = ctx.match[1]
     groupName = ctx.match[2]
     await ctx.reply(message, {
-      parse_mode: 'Markdown',
+      parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         Markup.button.callback(
-          '🌻 NFT Permissioned Chat',
+          "🌻 NFT Permissioned Chat",
           `showChat::${groupId}`
-        )
-      ])
+        ),
+      ]),
     })
   }
 
   async function showChatInfo(ctx) {
-    const group = ctx.user.groups.filter((el) => el.groupId === ctx.match[1])[0]
-
-    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationCode}`
-
+    let groupId = ctx.user.groups.filter(
+      async (groupId) => String(groupId) === String(ctx.match[1])
+    )[0]
+    const invitationCode = await getInvitationByGroupId(groupId)
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${invitationCode}`
+    console.log("invitationLink:", invitationLink)
     await ctx.reply(
       `Here is NFT Permissioned Chat configuration for *${groupName}*
 Invite others using [Invitation Link](${invitationLink})`,
       {
-        parse_mode: 'Markdown',
+        parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           Markup.button.callback(
-            '🍀 Add NFT Permissioned Config',
-            'chooseNetwork'
-          )
-        ])
+            "🍀 Add NFT Permissioned Config",
+            "chooseNetwork"
+          ),
+        ]),
       }
     )
   }
@@ -102,9 +111,9 @@ Invite others using [Invitation Link](${invitationLink})`,
   async function chooseNetwork(ctx) {
     await ctx.reply(`Please choose Nervos network`, {
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('Lina Mainnet', `network::Lina Mainnet`)],
-        [Markup.button.callback('Aggron Testnet', `network::Aggron Testnet`)]
-      ])
+        [Markup.button.callback("Lina Mainnet", `network::Lina Mainnet`)],
+        [Markup.button.callback("Aggron Testnet", `network::Aggron Testnet`)],
+      ]),
     })
   }
 
@@ -120,11 +129,11 @@ Invite others using [Invitation Link](${invitationLink})`,
 Now, choose what kind of membership you want to add to this community.
 Please choose NFT type for selected chain *${network}*`,
       {
-        parse_mode: 'Markdown',
+        parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          Markup.button.callback('NFT-0', 'NFT::NFT-0'),
-          Markup.button.callback('NFT-1', 'NFT::NFT-1')
-        ])
+          Markup.button.callback("NFT-0", "NFT::NFT-0"),
+          Markup.button.callback("NFT-1", "NFT::NFT-1"),
+        ]),
       }
     )
   }
@@ -137,24 +146,78 @@ Please choose NFT type for selected chain *${network}*`,
 /rule <Contract Address> <Minimum number of NFTs>
 
 for example: /rule 0xABCDED 5`,
-      { parse_mode: 'Markdown' }
+      { parse_mode: "Markdown" }
     )
   }
+  async function viewGroupTokenConfig(ctx, rules) {
+    const ruleList = rules.map((el, index) => [
+      Markup.button.callback(
+        `❎ Delete Config ${index + 1}`,
+        `deleteConfig::${groupId}::${index}`
+      ),
+    ])
+    const ruleTextList = rules
+      .map((el, index) => {
+        return `${index + 1}. Network: <pre style="color: #ff5500">${
+          el.network
+        }</pre>
+      NFT Type: <b>${el.nftType}</b>
+      NFT Address: <pre style="color: #ff5500">${el.address}</pre>
+      Min NFT: <b>${el.minQuantity}</b>`
+      })
+      .join("\n")
 
+    const group = ctx.user.groups.filter((el) => el.groupId === groupId)[0]
+
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationCode}`
+
+    // doc: https://core.telegram.org/bots/api#formatting-options
+    const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
+  Invite others using <a href="${invitationLink}">Invitation Link</a>
+
+  Below is list of current configuration.
+
+  ${ruleTextList}
+  `
+    await ctx.reply(message, {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([
+        ...ruleList,
+        [
+          Markup.button.callback(
+            "🍀 Add NFT Permissioned Config",
+            "chooseNetwork"
+          ),
+        ],
+      ]),
+    })
+  }
   async function deleteConfig(ctx) {
     const groupId = ctx.match[1]
     const configIndex = ctx.match[2]
-    await deleteGroupRule({ chatId: ctx.chat.id, groupId, configIndex })
+    const group = await deleteGroupRule({
+      chatId: ctx.chat.id,
+      groupId,
+      configIndex,
+    })
     await ctx.reply(`Configuration Deleted.`)
+    const rules = []
+    if (group.configurations) {
+        group.configurations.forEach((el) => {
+            rules.push(el)
+            })
+    }
+    viewGroupTokenConfig(ctx, rules)
   }
 
-  bot.command('/rule', setNftConfiguration)
+  bot.command("/rule", setNftConfiguration)
 
   async function setNftConfiguration(ctx) {
+    console.log("setNftConfiguration:", ctx.message.text)
     if (ctx.from.id !== ctx.chat.id) {
       return
     }
-    let params = ctx.message?.text?.split(' ')
+    let params = ctx.message?.text?.split(" ")
     //check for incorrect usage
     if (!params || params?.length < 2) {
       const message = `Usage template:
@@ -165,57 +228,22 @@ for example: /rule 0xABCDED 5`,
     contractAddress = params[1]
     minNft = Number(params[2])
     // save data to db
+    console.log("save Rule groupId,nftType:", groupId, nftType)
+    if (!groupId || !nftType) {
+      return ctx.reply(
+        `Please use "/start" and "Group Admin" to choose Group and NFT type`
+      )
+    }
     const rules = await updateGroupRules({
       chatId: ctx.chat.id,
       groupId,
       network,
       contractAddress,
       nftType,
-      minNft
+      minNft,
     })
-    await ctx.reply('Congrats!!! Configuration added.')
-
-    const ruleList = rules.map((el, index) => [
-      Markup.button.callback(
-        `❎ Delete Config ${index + 1}`,
-        `deleteConfig::${groupId}::${index}`
-      )
-    ])
-    const ruleTextList = rules
-      .map((el, index) => {
-        return `${index + 1}. Network: <pre style="color: #ff5500">${
-          el.network
-        }</pre>
-    NFT Type: <b>${el.nftType}</b>
-    NFT Address: <pre style="color: #ff5500">${el.address}</pre>
-    Min NFT: <b>${el.minQuantity}</b>`
-      })
-      .join('\n')
-
-    const group = ctx.user.groups.filter((el) => el.groupId === groupId)[0]
-
-    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationCode}`
-
-    // doc: https://core.telegram.org/bots/api#formatting-options
-    const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
-Invite others using <a href="${invitationLink}">Invitation Link</a>
-
-Below is list of current configuration.
-
-${ruleTextList}
-`
-    await ctx.reply(message, {
-      parse_mode: 'HTML',
-      ...Markup.inlineKeyboard([
-        ...ruleList,
-        [
-          Markup.button.callback(
-            '🍀 Add NFT Permissioned Config',
-            'chooseNetwork'
-          )
-        ]
-      ])
-    })
+    await ctx.reply("Congrats!!! Configuration added.")
+    viewGroupTokenConfig(ctx, rules)
   }
 
   // when a user wants to chat with this bot through invitation link

@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const { registerHandlers } = require('./handlers')
 const { attachUser } = require('./middlewares/attachUser')
-const { saveMemberInfo } = require('./service/userService')
+const { saveMemberInfo } = require('./service/userService.ts')
 const jwt = require('jsonwebtoken')
 const { validateSignature, getWalletAddress } = require('./utils')
 const cron = require('node-cron')
@@ -110,7 +110,7 @@ app.get('/api/wallet', async (req, res) => {
             await bot.telegram.sendMessage(userId, 'Processing!!! Please wait...')
 
             const cotaCount = await cota.isQualified(address, groupId)
-            if (cotaCount > 0) {
+            if (cotaCount >0) {
                 await saveMemberInfo({ ...decoded, walletAddress: address })
                 // send below message if a user is approved to join group
                 try {
@@ -154,5 +154,5 @@ app.get('/api/wallet', async (req, res) => {
 })
 
 app.listen(3000, () => {
-    console.log('Example app listening on port 3000!')
+    console.log('ckb-nft-telegram-bot app listening on port 3000!')
 })

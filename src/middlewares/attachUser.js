@@ -1,4 +1,4 @@
-const { getUserInfo } = require('../service/userService')
+const { getUserInfo } = require('../service/userService.ts')
 
 exports.attachUser = async (ctx, next) => {
   if (ctx.from) {

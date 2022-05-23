@@ -1,17 +1,21 @@
-const { Aggregator } = require('@nervina-labs/cota-sdk')
+const { Aggregator } = require("@nervina-labs/cota-sdk")
 const {
   addressToScript,
-  serializeScript
-} = require('@nervosnetwork/ckb-sdk-utils')
-const { getGroupRules, getGroups, getGroupMembers } = require('./userService')
+  serializeScript,
+} = require("@nervosnetwork/ckb-sdk-utils")
+const {
+  getGroupRules,
+  getGroups,
+  getGroupMembers,
+} = require("./userService.ts")
 
 const service = {
   aggregator: new Aggregator({
     // registryUrl: 'http://cota-registry-aggregator.rostra.xyz',
     // cotaUrl: 'http://cota-aggregator.rostra.xyz',
-    registryUrl: 'https://cota.nervina.dev/registry-aggregator',
-    cotaUrl: 'https://cota.nervina.dev/aggregator '
-  })
+    registryUrl: "https://cota.nervina.dev/registry-aggregator",
+    cotaUrl: "https://cota.nervina.dev/aggregator ",
+  }),
 }
 
 const getCotaCount = async (account, contractAddress) => {
@@ -20,13 +24,14 @@ const getCotaCount = async (account, contractAddress) => {
   const params = { lockScript, cotaId: contractAddress }
   const cotaCount = await aggregator.getCotaCount(params)
 
-  console.log('cotaCount...', cotaCount)
+  console.log("cotaCount...", cotaCount)
   return cotaCount?.count
 }
 
 const isQualified = async (account, groupId) => {
   const rules = await getGroupRules(groupId)
-  console.log('rules...', rules)
+  console.log("rules...", rules)
+  if (!rules||rules.length<=0) return false
   for (let i = 0; i < rules.length; i++) {
     const rs = await getCotaCount(account, rules[i].address)
     if (!rs || rs.count < rules[i].minQuantity) {
@@ -65,5 +70,5 @@ const banGroupMembers = async (bot) => {
 module.exports = {
   getCotaCount,
   isQualified,
-  banGroupMembers
+  banGroupMembers,
 }
