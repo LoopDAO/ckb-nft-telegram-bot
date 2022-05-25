@@ -8,8 +8,10 @@ const {
   addInvitationInfo,
   getGroupByInvitationCode,
   getInvitationInfo,
-    getGroupInfoById,
-    getGroupsList
+  getGroupInfoById,
+  getGroupsList,
+  getMember,
+  setMember,
 } = require("../firebase/index.ts")
 
 exports.getUserInfo = async (ctx) => {
@@ -32,9 +34,8 @@ exports.getUserInfo = async (ctx) => {
         console.log("save user...", user)
       }
 
-      return user.data()
+      return user?.data()
     } else {
-
       let user = await getUser(ctx.from?.id)
       if (user.exists) {
         user = user.data()
@@ -70,7 +71,7 @@ exports.updateGroupRules = async (data) => {
   let user = await getUser(chatId)
   if (!user.exists) return
   user = user.data()
-  if (user&&groupId) {
+  if (user && groupId) {
     let group = await getGroupInfoById(groupId)
     let rules = group.configurations
     const index = rules?.findIndex(
@@ -114,29 +115,30 @@ exports.updateGroupRules = async (data) => {
         return el
       })
     }
-      group.configurations = newRules
-      group.updatedAt = new Date()
-      await updateGroup(groupId, group)
+    group.configurations = newRules
+    group.updatedAt = new Date()
+    await updateGroup(groupId, group)
     return newRules
   } else {
-      console.log("updateGroupRules error...")
+    console.log("updateGroupRules error...")
   }
 }
 
 exports.deleteGroupRule = async (data) => {
   const { chatId, groupId, configIndex } = data
 
-    let group = await getGroupInfoById(groupId)
-    if (group) {
-        let newRules = [
-          ...group.configurations.slice(0, configIndex),
-          ...group.configurations.slice(configIndex + 1),
-        ]
-        console.log("delete newRules...", newRules)
-        group.configurations = newRules
-        await updateGroup(groupId, group)
-        return group
-    }
+  let group = await getGroupInfoById(groupId)
+  if (group) {
+    // let newRules = [
+    //   ...group.configurations.slice(0, configIndex),
+    //   ...group.configurations.slice(configIndex + 1),
+    // ]
+    // console.log("delete newRules...", newRules)
+    // group.configurations = newRules
+    group.configurations.splice(configIndex, 1)
+    await updateGroup(groupId, group)
+    return group
+  }
 }
 
 exports.getGroupByInvitationCode = async (invitationCode) => {
@@ -152,13 +154,10 @@ exports.getGroupByInvitationCode = async (invitationCode) => {
 
 exports.saveMemberInfo = async (data) => {
   try {
-    let member = await getMember(
-       data.userId,
-       data.groupId,
-    )
+    let member = await getMember(data.userId, data.groupId)
     if (!member) {
-      
-      await setMember(data.userId,data)
+      console.log("saveMemberInfo...", data)
+      await setMember(data.userId, data)
     }
   } catch (err) {
     console.log("saveMemberInfo err...", err)
@@ -167,14 +166,14 @@ exports.saveMemberInfo = async (data) => {
 
 exports.getGroupMembers = async (groupId) => {
   try {
-    return await getMembersBuGroupId( groupId )
+    return await getMembersBuGroupId(groupId)
   } catch (err) {
     console.log("getGroups err...", err)
   }
 }
 
 exports.getGroups = async (data) => {
-    try {
+  try {
     return await getGroupsList()
     // let users = await User.find()
     // if (users) {

@@ -32,6 +32,42 @@ async function getGroupsList() {
         .get()
     return groups
 }
+// bot.context = {
+//     groupId: "",
+//     groupName: "",
+//     network:
+//       process.env.CHAIN_TYPE == "testnet" ? "Aggron Testnet" : "Lina Mainnet",
+//     contractAddress: "",
+//     nftType: "NFT-0",
+//     minNft: "",
+//   }
+async function syncBotInfo(bot) {
+    let context = bot.context
+    const Doc = bot.token + "__" + context.userId
+    let info = await dbFirebase
+        .collection("Bot-User")
+        .doc(Doc)
+        .get()
+    if (info.exists) {
+        info = info.data()
+
+        if (context?.groupId?.length > 0) info.groupId = context.groupId
+        if (context?.groupName?.length > 0)    info.groupName = context.groupName
+        if (context?.network?.length > 0) info.network = context.network
+        if (context?.contractAddress?.length > 0) info.contractAddress = context.contractAddress
+        if (context?.nftType?.length > 0) info.nftType = context.nftType
+        if (context?.minNft?.length > 0) info.minNft = context.minNft
+        if (context?.userId?.length > 0) info.userId = context.userId
+        if (context?.token?.length > 0) info.token = context.token
+    } else
+        info = context
+    
+    await dbFirebase
+        .collection("Bot-User")
+        .doc(Doc)
+        .set(info)
+    return info
+}
 
 async function getMember(userId, groupId) {
     return new Promise(resolve => {
@@ -162,5 +198,6 @@ module.exports = {
     getInvitationInfo,
     getInvitationByUserId,
     getInvitationByGroupId,
-    getGroupsList
+    getGroupsList,
+    syncBotInfo
 }

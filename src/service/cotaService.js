@@ -30,9 +30,13 @@ const getCotaCount = async (account, contractAddress) => {
 
 const isQualified = async (account, groupId) => {
   const rules = await getGroupRules(groupId)
-  if (!rules||rules.length<=0) return false
+    if (!rules || rules.length <= 0) {
+        console.log("no rules...", groupId)
+        return false
+    }
   for (let i = 0; i < rules.length; i++) {
-    const rs = await getCotaCount(account, rules[i].address)
+      const rs = await getCotaCount(account, rules[i].address)
+      console.log("getCotaCount...", rs, rules[i].address,rules[i].minQuantity)
     if (!rs || rs.count < rules[i].minQuantity) {
       return false
     }

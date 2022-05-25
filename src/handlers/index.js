@@ -3,6 +3,7 @@ const { registerStartMenu } = require("./registerStartMenu")
 const {
   getGroupInfoById,
   getInvitationByGroupId,
+  syncBotInfo,
 } = require("../firebase/index.ts")
 const {
   updateGroupRules,
@@ -12,15 +13,6 @@ const {
 exports.registerHandlers = async (bot) => {
   await registerStartMenu(bot)
 
-  // TODO: should use mongodb to store user's data
-  let groupId = ""
-  let groupName = ""
-  let network =
-    process.env.CHAIN_TYPE == "testnet" ? "Aggron Testnet" : "Lina Mainnet"
-  let contractAddress = ""
-  let nftType = "NFT-0"
-  let minNft = ""
-
   bot.action("setup", setupGroup)
   bot.action("config", configGroup)
   bot.action(/^groups::(\-\d+)::(.+)$/, showGroupInfo)
@@ -28,6 +20,7 @@ exports.registerHandlers = async (bot) => {
   bot.action("chooseNetwork", chooseNetwork)
   bot.action(/^network::(.+)$/, showNetworkInfo)
   bot.action(/^NFT::(.+)$/, addTokenConfig)
+  bot.action(/addTokenConfig::(.+)$/, addTokenConfig)
   bot.action(/^deleteConfig::(\-\d+)::(\d+)$/, deleteConfig)
 
   async function setupGroup(ctx) {
@@ -71,17 +64,19 @@ exports.registerHandlers = async (bot) => {
     // get a specific group info
     const message = `Please choose from options below
 
-Group Id: ${ctx.match[1]}
-Group Name: ${ctx.match[2]}
-`
-    groupId = ctx.match[1]
-    groupName = ctx.match[2]
+    Group Id: ${ctx.match[1]}
+    Group Name: ${ctx.match[2]}
+    `
+    bot.context.groupId = ctx.match[1]
+    bot.context.groupName = ctx.match[2]
+    syncBotInfo(bot)
+
     await ctx.reply(message, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         Markup.button.callback(
           "🌻 NFT Permissioned Chat",
-          `showChat::${groupId}`
+          `showChat::${bot.context.groupId}`
         ),
       ]),
     })
@@ -94,14 +89,14 @@ Group Name: ${ctx.match[2]}
     const invitationCode = await getInvitationByGroupId(groupId)
     const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${invitationCode}`
     await ctx.reply(
-      `Here is NFT Permissioned Chat configuration for *${groupName}*
-Invite others using [Invitation Link](${invitationLink})`,
+      `Here is NFT Permissioned Chat configuration for *${bot.context.groupName}*
+    Invite others using [Invitation Link](${invitationLink})`,
       {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           Markup.button.callback(
             "🍀 Add NFT Permissioned Config",
-            "chooseNetwork"
+            "addTokenConfig::NFT-0"
           ),
         ]),
       }
@@ -118,16 +113,17 @@ Invite others using [Invitation Link](${invitationLink})`,
   }
 
   async function showNetworkInfo(ctx) {
-    network = ctx.match[1]
+    bot.context.network = ctx.match[1]
     await selectNft(ctx, ctx.match[1])
+    syncBotInfo(bot)
   }
 
   async function selectNft(ctx, network) {
     await ctx.reply(
-      `Groovy! Let’s configure NFT permission for *${groupName}*
+      `Groovy! Let’s configure NFT permission for *${bot.context.groupName}*
 
-Now, choose what kind of membership you want to add to this community.
-Please choose NFT type for selected chain *${network}*`,
+        Now, choose what kind of membership you want to add to this community.
+        Please choose NFT type for selected chain *${network}*`,
       {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
@@ -139,17 +135,18 @@ Please choose NFT type for selected chain *${network}*`,
   }
 
   async function addTokenConfig(ctx) {
-    nftType = ctx.match[1]
+    bot.context.nftType = ctx.match[1]
+    syncBotInfo(bot)
     await ctx.reply(
       `Tell me your NFT details in the format below:
 
-/rule <Contract Address> <Minimum number of NFTs>
+        /rule <Contract Address> <Minimum number of NFTs>
 
-for example: /rule 0xABCDED 5`,
+        for example: /rule 0xABCDED 5`,
       { parse_mode: "Markdown" }
     )
   }
-  async function viewGroupTokenConfig(ctx, rules) {
+  async function viewGroupTokenConfig(ctx, groupId, rules) {
     const ruleList = rules.map((el, index) => [
       Markup.button.callback(
         `❎ Delete Config ${index + 1}`,
@@ -172,7 +169,7 @@ for example: /rule 0xABCDED 5`,
     const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationCode}`
 
     // doc: https://core.telegram.org/bots/api#formatting-options
-    const message = `Here is NFT Permissioned Chat configuration for <b>${groupName}</b>
+    const message = `Here is NFT Permissioned Chat configuration for <b>${bot.context.groupName}</b>
   Invite others using <a href="${invitationLink}">Invitation Link</a>
 
   Below is list of current configuration.
@@ -185,14 +182,15 @@ for example: /rule 0xABCDED 5`,
         ...ruleList,
         [
           Markup.button.callback(
-            "🍀 Add NFT Permissioned Config",
-            "chooseNetwork"
+            "🍀 Add NFT Permissioned Config.",
+            "addTokenConfig::NFT-0"
           ),
         ],
       ]),
     })
   }
   async function deleteConfig(ctx) {
+    console.log("deleteConfig:", ctx.match[1], ctx.match[2])
     const groupId = ctx.match[1]
     const configIndex = ctx.match[2]
     const group = await deleteGroupRule({
@@ -207,11 +205,13 @@ for example: /rule 0xABCDED 5`,
         rules.push(el)
       })
     }
-    viewGroupTokenConfig(ctx, rules)
+    viewGroupTokenConfig(ctx, group.groupId, rules)
   }
 
-  bot.command("/rule", setNftConfiguration)
-  bot.command("/rules", getNftConfiguration)
+    bot.command("/rule", setNftConfiguration)
+    bot.command("/group", showGroupInfo)
+    
+    bot.command("/rules", getNftConfiguration)
 
   async function setNftConfiguration(ctx) {
     console.log("command:", ctx.message.text)
@@ -223,47 +223,50 @@ for example: /rule 0xABCDED 5`,
     if (!params || params?.length < 2) {
       const message = `Usage template:
 
-*/rule <Contract Address> <Minimum number of NFTs>*`
+    */rule <Contract Address> <Minimum number of NFTs>*`
       return ctx.replyWithMarkdown(message)
     }
-    contractAddress = params[1]
-    minNft = Number(params[2])
+    bot.context.contractAddress = params[1]
+    bot.context.minNft = Number(params[2])
+    syncBotInfo(bot)
     // save data to db
-    console.log("save Rule groupId,nftType:", groupId, nftType)
-    if (!groupId || !nftType) {
+    console.log(
+      "save Rule groupId,nftType:",
+      bot.context.groupId,
+      bot.context.nftType
+    )
+    if (!bot.context.groupId || !bot.context.nftType) {
       return ctx.reply(
         `Please use "/start" and "Group Admin" to choose Group and NFT type`
       )
     }
     const rules = await updateGroupRules({
       chatId: ctx.chat.id,
-      groupId,
-      network,
-      contractAddress,
-      nftType,
-      minNft,
+      groupId: bot.context.groupId,
+      network: bot.context.network,
+      contractAddress: bot.context.contractAddress,
+      nftType: bot.context.nftType,
+      minNft: bot.context.minNft,
     })
     await ctx.reply("Congrats!!! Configuration added.")
-    viewGroupTokenConfig(ctx, rules)
+    viewGroupTokenConfig(ctx, bot.context.groupId, rules)
   }
   async function getNftConfiguration(ctx) {
     console.log("command:", ctx.message.text)
     if (ctx.from.id !== ctx.chat.id) {
       return
     }
-    ctx.user.groups.filter(
-        async (groupId) => {
-            const group = await getGroupInfoById(groupId)
-            const rules = []
-            if (group.configurations) {
-              console.log("groupName:", group.groupName)
-              group.configurations.forEach((el) => {
-                rules.push(el)
-              })
-              viewGroupTokenConfig(ctx, rules)
-            }
-        }
-    )
+    ctx.user.groups.filter(async (groupId) => {
+      const group = await getGroupInfoById(groupId)
+      const rules = []
+      if (group.configurations) {
+        console.log("groupName:", group.groupName)
+        group.configurations.forEach((el) => {
+          rules.push(el)
+        })
+        viewGroupTokenConfig(ctx, group.groupId, rules)
+      }
+    })
   }
   // when a user wants to chat with this bot through invitation link
   // https://core.telegram.org/bots#deep-linking

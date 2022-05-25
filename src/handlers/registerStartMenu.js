@@ -1,7 +1,7 @@
 const { Markup } = require("telegraf")
 const fs = require("fs")
 const { getGroupByInvitationCode } = require("../service/userService.ts")
-const { getGroupInfoById } = require("../firebase/index.ts")
+const { getGroupInfoById, syncBotInfo } = require("../firebase/index.ts")
 const jwt = require("jsonwebtoken")
 const { generateSignMessageURL, Config } = require("@nervina-labs/flashsigner")
 
@@ -11,18 +11,29 @@ const testnetURL = "https://staging.flashsigner.work"
 exports.registerStartMenu = async (bot) => {
   bot.start(async (ctx) => {
     const chainType = process.env.CHAIN_TYPE || "testnet"
-      const network = chainType === "mainnet" ? mainnetURL : testnetURL
-      
+    const network = chainType === "mainnet" ? mainnetURL : testnetURL
+
     Config.setFlashsignerURL(network)
     Config.setChainType(chainType)
 
     //console.log("ctx.update...", ctx.update.message)
     const user = ctx.user
     const chat = ctx.chat
-    const startPayload = ctx.startPayload
-    console.log("command:/start",user.lastName+'.'+user.firstName,chat.type)
+    console.log(
+      "command:/start",
+      user?.lastName + "." + user?.firstName,
+      chat.type
+    )
 
+    const startPayload = ctx.startPayload
     if (chat.type === "private") {
+      bot.context = {
+        userId: user.userId,
+        network: chainType,
+        nftType: "NFT-0",
+      }
+      bot.context = await syncBotInfo(bot)
+
       if (startPayload && startPayload !== "c") {
         const group = await getGroupByInvitationCode(startPayload)
         if (group) {
@@ -35,7 +46,7 @@ exports.registerStartMenu = async (bot) => {
             groupName: group.groupName,
             groupId: group.groupId,
           }
-          const successURL = `${process.env.SERVER_URL}/api/wallet`          
+          const successURL = `${process.env.SERVER_URL}/api/wallet`
           const token = jwt.sign(data, process.env.TOKEN_SECRET)
 
           const url = generateSignMessageURL(successURL, {
@@ -89,29 +100,67 @@ exports.registerStartMenu = async (bot) => {
 
   async function groupAdmin(ctx) {
     const promises = ctx.user.groups.map(async (el) => {
-        const group = await getGroupInfoById(el)
-        if (group) {
-            return [
-                Markup.button.callback(
-                    `🍏 ${group.groupName}`,
-                    `groups::${group.groupId}::${group.groupName}`
-                ),
-            ]
-        }
+      const group = await getGroupInfoById(el)
+      if (group) {
+        return [
+          Markup.button.callback(
+            `🍏 ${group.groupName}`,
+            `groups::${group.groupId}::${group.groupName}`
+          ),
+        ]
+      }
     })
     Promise.all(promises).then((groupList) => {
-        ctx.reply(
-          `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
-          Markup.inlineKeyboard([
-            ...groupList,
-            [
-              Markup.button.url(
-                `Add ${process.env.BOT_NAME} to Group`,
-                `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
-              ),
-            ],
-          ])
-        )
+      ctx.reply(
+        `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
+        Markup.inlineKeyboard([
+          ...groupList,
+          [
+            Markup.button.url(
+              `Add ${process.env.BOT_NAME} to Group`,
+              `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
+            ),
+          ],
+        ])
+      )
     })
-  }
+    }
+    bot.help(async (ctx) => {
+            const statueText = bot.context.groupId ?`Current status:
+            Username:  ${ctx.chat.username}
+            GroupName: ${bot.context.groupName}
+            Network:   ${bot.context.network}
+            GroupRules: ${bot.context.groupId ? (await getGroupInfoById(bot.context.groupId))?.configurations?.length : "none"}`
+                : `\nPlease run /start first.`
+
+            await ctx.reply(`command list:\n
+            /start - start bot
+            /rules - show group rules
+            /rule - add group rule ex: /rule 0x123456 100
+            /help - show help
+            ${statueText}`)
+    })
+
+    bot.settings(async (ctx) => {
+        const user = ctx.user
+        const chat = ctx.chat
+        console.log(
+            "command:/settings",
+            user?.lastName + "." + user?.firstName,
+            chat.type
+        )
+        const message = `<b>Settings</b>`
+        const inlineButtons = [
+            Markup.button.callback(`🍋 Setup NFT Holders Group`, "setup"),
+            Markup.button.callback(`🍃 Group Admin`, "groupAdmin"),
+        ]
+        return await ctx.replyWithAnimation(
+            { source: fs.readFileSync("./src/assets/robot.gif") },
+            {
+            caption: message,
+            parse_mode: "HTML",
+            ...Markup.inlineKeyboard(inlineButtons),
+            }
+        )
+        })
 }

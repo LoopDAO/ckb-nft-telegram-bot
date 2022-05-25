@@ -111,7 +111,7 @@ app.get('/api/wallet', async (req, res) => {
             await bot.telegram.sendMessage(userId, 'Processing!!! Please wait...')
 
             const cotaCount = await cota.isQualified(address, groupId)
-            if (cotaCount >0) {
+            if (cotaCount) {
                 await saveMemberInfo({ ...decoded, walletAddress: address })
                 // send below message if a user is approved to join group
                 try {
@@ -143,9 +143,9 @@ app.get('/api/wallet', async (req, res) => {
             } else {
                 await bot.telegram.sendMessage(
                     userId,
-                    `Sorry, you could not join ${groupName}`
+                    `Sorry, you could not join ${groupName}(COTA count is ${cotaCount})`
                 )
-                return res.send(`Sorry, you could not join ${groupName}`)
+                return res.send(`Sorry, you could not join ${groupName}(COTA count is ${cotaCount})`)
             }
         } catch (err) {
             console.log('verify message err...', err)
