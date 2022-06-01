@@ -7,6 +7,7 @@ const firebaseConfig = {
 }
 const app = initializeApp(firebaseConfig)
 const dbFirebase = getFirestore(app)
+dbFirebase.settings({ ignoreUndefinedProperties: true }) // ignore undefined properties
 
 async function isFirestoreAvialable() {
     return new Promise((resolve, reject) => {

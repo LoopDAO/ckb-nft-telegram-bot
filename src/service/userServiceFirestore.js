@@ -21,6 +21,7 @@ exports.getUserInfo = async (ctx) => {
       const sender = ctx.from
 
       let user = await getUser(ctx.chat?.id)
+      console.log("chat private getUserInfo user...", user)
       if (!user.exists) {
         u = {
           userId: sender.id,
@@ -31,7 +32,8 @@ exports.getUserInfo = async (ctx) => {
           groups: [],
         }
         user = await setUser(ctx.chat?.id, u)
-        console.log("save user...", user)
+        console.log("save user...", u)
+        return u
       }
 
       return user?.data()
