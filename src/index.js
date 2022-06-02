@@ -11,7 +11,7 @@ const { validateSignature, getWalletAddress } = require('./utils')
 const cron = require('node-cron')
 const cota = require('./service/cotaService')
 const {isFirestoreAvialable} = require('./firebase/index.ts')
-
+  
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
     throw new Error('BOT_TOKEN must be provided!')
@@ -109,7 +109,7 @@ app.get('/api/wallet', async (req, res) => {
          send below message to a user who wanna join when bot is checking if the user's address has required nfts. Here will use ckb api to do the job
         */
             await bot.telegram.sendMessage(userId, 'Processing!!! Please wait...')
-
+            
             const cotaCount = await cota.isQualified(address, groupId)
             if (cotaCount) {
                 await saveMemberInfo({ ...decoded, walletAddress: address })
@@ -143,9 +143,9 @@ app.get('/api/wallet', async (req, res) => {
             } else {
                 await bot.telegram.sendMessage(
                     userId,
-                    `Sorry, you could not join ${groupName}(COTA count is ${cotaCount})`
+                    `Sorry, you could not join ${groupName}(COTA Asset verification failed)`
                 )
-                return res.send(`Sorry, you could not join ${groupName}(COTA count is ${cotaCount})`)
+                return res.send(`Sorry, you could not join ${groupName}(COTA Asset verification results is ${cotaCount})`)
             }
         } catch (err) {
             console.log('verify message err...', err)

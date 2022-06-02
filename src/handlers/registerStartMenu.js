@@ -33,7 +33,7 @@ exports.registerStartMenu = async (bot) => {
         nftType: "NFT-0",
       }
       bot.context = await syncBotInfo(bot)
-
+      console.log("bot.context=", bot.context)
       if (startPayload && startPayload !== "c") {
         const group = await getGroupByInvitationCode(startPayload)
         if (group) {
@@ -96,8 +96,8 @@ exports.registerStartMenu = async (bot) => {
       )
     }
   })
+//actuib groupAdnub
   bot.action("groupAdmin", groupAdmin)
-
   async function groupAdmin(ctx) {
     const promises = ctx.user.groups.map(async (el) => {
       const group = await getGroupInfoById(el)
@@ -114,7 +114,7 @@ exports.registerStartMenu = async (bot) => {
       ctx.reply(
         `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
         Markup.inlineKeyboard([
-          ...groupList,
+            ...groupList,
           [
             Markup.button.url(
               `Add ${process.env.BOT_NAME} to Group`,
@@ -124,43 +124,66 @@ exports.registerStartMenu = async (bot) => {
         ])
       )
     })
-    }
-    bot.help(async (ctx) => {
-            const statueText = bot.context.groupId ?`Current status:
+  }
+  //command help
+  bot.help(async (ctx) => {
+    const statueText = bot.context.groupId
+      ? `Current status:
             Username:  ${ctx.chat.username}
             GroupName: ${bot.context.groupName}
             Network:   ${bot.context.network}
-            GroupRules: ${bot.context.groupId ? (await getGroupInfoById(bot.context.groupId))?.configurations?.length : "none"}`
-                : `\nPlease run /start first.`
+            GroupRules: ${
+              bot.context.groupId
+                ? (await getGroupInfoById(bot.context.groupId))?.configurations
+                    ?.length
+                : "none"
+            }`
+      : `\nPlease run /start first.`
 
-            await ctx.reply(`command list:\n
+    await ctx.reply(`command list:\n
             /start - start bot
             /rules - show group rules
             /rule - add group rule ex: /rule 0x123456 100
+            /settings - show settings command list
             /help - show help
             ${statueText}`)
-    })
+  })
 
-    bot.settings(async (ctx) => {
-        const user = ctx.user
-        const chat = ctx.chat
-        console.log(
-            "command:/settings",
-            user?.lastName + "." + user?.firstName,
-            chat.type
-        )
-        const message = `<b>Settings</b>`
-        const inlineButtons = [
-            Markup.button.callback(`🍋 Setup NFT Holders Group`, "setup"),
-            Markup.button.callback(`🍃 Group Admin`, "groupAdmin"),
-        ]
-        return await ctx.replyWithAnimation(
-            { source: fs.readFileSync("./src/assets/robot.gif") },
-            {
-            caption: message,
-            parse_mode: "HTML",
-            ...Markup.inlineKeyboard(inlineButtons),
-            }
-        )
-        })
+  bot.settings(async (ctx) => {
+    const user = ctx.user
+    const chat = ctx.chat
+    console.log(
+      "command:/settings",
+      user?.lastName + "." + user?.firstName,
+      chat.type,user
+      )
+    bot.context.userId = (user?.userId) ?? (ctx.from.id)
+      
+    const message = `<b>Settings</b>`
+    const inlineButtons = [
+      [Markup.button.callback(`🍋 Setup NFT Holders Group`, "setup")],
+      [Markup.button.callback(`🍃 Group Admin`, "groupAdmin")],
+
+      [
+        Markup.button.callback(
+          `Set all rules condition to "AND"`,
+          "setRuleCondition::AND"
+        ),
+      ],
+      [
+        Markup.button.callback(
+          `Set all rules condition to “OR”`,
+          "setRuleCondition::OR"
+        ),
+      ],
+    ]
+    return await ctx.replyWithAnimation(
+      { source: fs.readFileSync("./src/assets/robot.gif") },
+      {
+        caption: message,
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard(inlineButtons),
+      }
+    )
+  })
 }

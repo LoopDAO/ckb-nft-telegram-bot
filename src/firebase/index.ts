@@ -51,7 +51,7 @@ async function syncBotInfo(bot) {
         .get()
     if (info.exists) {
         info = info.data()
-
+        console.log("firebase bot info:", info)
         if (context?.groupId?.length > 0) info.groupId = context.groupId
         if (context?.groupName?.length > 0)    info.groupName = context.groupName
         if (context?.network?.length > 0) info.network = context.network
@@ -171,11 +171,12 @@ async function getInvitationByUserId(userId) {
     })
 }
 async function updateGroup(chatId, data) {
+    if(data.condition==undefined)data.condition="AND"
     const group = await dbFirebase
         .collection("Groups")
         .doc(String(chatId))
         .set(data)
-    return group
+    return data
 }
 async function addInvitationInfo(code, userId, groupId) {
     const info = await dbFirebase

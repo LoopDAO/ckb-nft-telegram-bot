@@ -4,10 +4,12 @@ const {
   serializeScript,
 } = require("@nervosnetwork/ckb-sdk-utils")
 const {
-  getGroupRules,
   getGroups,
   getGroupMembers,
 } = require("./userService.ts")
+const {
+    getGroupInfoById,
+}= require("../firebase/index.ts")
 
 const service = {
   aggregator: new Aggregator({
@@ -29,16 +31,29 @@ const getCotaCount = async (account, contractAddress) => {
 }
 
 const isQualified = async (account, groupId) => {
-  const rules = await getGroupRules(groupId)
-    if (!rules || rules.length <= 0) {
-        console.log("no rules...", groupId)
-        return false
-    }
+  const group = await getGroupInfoById(groupId)
+  const rules = group.configurations
+  //const rules = await getGroupRules(groupId)
+  if (!rules || rules.length <= 0) {
+    console.log("no rules...", groupId)
+    return false
+  }
+  condition = group.condition ?? "and"
+  console.log("condition...", condition)
   for (let i = 0; i < rules.length; i++) {
-      const rs = await getCotaCount(account, rules[i].address)
-      console.log("getCotaCount...", rs, rules[i].address,rules[i].minQuantity)
-    if (!rs || rs.count < rules[i].minQuantity) {
-      return false
+    const rs = await getCotaCount(account, rules[i].address)
+    console.log("getCotaCount...", rs, rules[i].address, rules[i].minQuantity)
+
+    if (condition.toLowerCase() === "and") {
+      if (!rs || rs.count < rules[i].minQuantity) {
+        console.log("not qualified...", i, rs, rules[i].minQuantity)
+        return false
+      }
+    } else {
+      if (rs && rs.count >= rules[i].minQuantity) {
+        console.log("qualified...", i, rs, rules[i].minQuantity)
+        return true
+      }
     }
   }
   return true

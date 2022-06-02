@@ -3,7 +3,8 @@ const { registerStartMenu } = require("./registerStartMenu")
 const {
   getGroupInfoById,
   getInvitationByGroupId,
-  syncBotInfo,
+    syncBotInfo,
+    updateGroup
 } = require("../firebase/index.ts")
 const {
   updateGroupRules,
@@ -15,6 +16,9 @@ exports.registerHandlers = async (bot) => {
 
   bot.action("setup", setupGroup)
   bot.action("config", configGroup)
+
+  bot.action(/^setRuleCondition::(.+)$/, setRuleCondition)
+
   bot.action(/^groups::(\-\d+)::(.+)$/, showGroupInfo)
   bot.action(/showChat::(\-\d+)/, showChatInfo)
   bot.action("chooseNetwork", chooseNetwork)
@@ -59,7 +63,29 @@ exports.registerHandlers = async (bot) => {
       }
     )
   }
+  async function setRuleCondition(ctx) {
+    condition = String(ctx.match[1])
+    condition = String(condition?.toLowerCase() === "and" ? "AND" : "OR")
+    next = String(condition?.toLowerCase() === "and" ? "OR" : "AND")
+    console.log("setRuleCondition:", condition)
+      if (bot.context.groupId === undefined) {
+          bot.context =await syncBotInfo(bot)
+        }
+      const group = await getGroupInfoById(bot.context.groupId)
+      console.log("setRuleCondition:", group,bot.context)
+    group.condition = condition
+    updateGroup(group.groupId, group)
 
+    await ctx.reply(`All rule conditions have been set to "${condition}".`, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        Markup.button.callback(
+          `🌻Set all rules condition to "${next}"`,
+          `setRuleCondition::${next}`
+        ),
+      ]),
+    })
+  }
   async function showGroupInfo(ctx) {
     // get a specific group info
     const message = `Please choose from options below
@@ -146,27 +172,29 @@ exports.registerHandlers = async (bot) => {
       { parse_mode: "Markdown" }
     )
   }
-  async function viewGroupTokenConfig(ctx, groupId, rules) {
-    const ruleList = rules.map((el, index) => [
+  async function viewGroupTokenConfig(ctx, group) {
+    const ruleList = group.configurations.map((el, index) => [
       Markup.button.callback(
         `❎ Delete Config ${index + 1}`,
-        `deleteConfig::${groupId}::${index}`
+        `deleteConfig::${group.groupId}::${index}`
       ),
     ])
-    const ruleTextList = rules
+    const ruleTextList = group.configurations
       .map((el, index) => {
+        console.log("viewGroupTokenConfig:", el)
         return `${index + 1}. Network: <pre style="color: #ff5500">${
           el.network
         }</pre>
-      NFT Type: <b>${el.nftType}</b>
       NFT Address: <pre style="color: #ff5500">${el.address}</pre>
       Min NFT: <b>${el.minQuantity}</b>`
       })
-      .join("\n")
+      .join(
+        `\n <pre style="color: #ff5500">---${group.condition}---</pre> \n`
+      )
 
-    const group = ctx.user.groups.filter((el) => el.groupId === groupId)[0]
+    const groupX = ctx.user.groups.filter((el) => el.groupId === group.groupId)[0]
 
-    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${group?.invitationCode}`
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${groupX?.invitationCode}`
 
     // doc: https://core.telegram.org/bots/api#formatting-options
     const message = `Here is NFT Permissioned Chat configuration for <b>${bot.context.groupName}</b>
@@ -205,13 +233,14 @@ exports.registerHandlers = async (bot) => {
         rules.push(el)
       })
     }
-    viewGroupTokenConfig(ctx, group.groupId, rules)
+    viewGroupTokenConfig(ctx, group)
   }
 
-    bot.command("/rule", setNftConfiguration)
-    bot.command("/group", showGroupInfo)
-    
-    bot.command("/rules", getNftConfiguration)
+  bot.command("/rule", setNftConfiguration)
+
+  bot.command("/group", showGroupInfo)
+
+  bot.command("/rules", getNftConfiguration)
 
   async function setNftConfiguration(ctx) {
     console.log("command:", ctx.message.text)
@@ -220,15 +249,19 @@ exports.registerHandlers = async (bot) => {
     }
     let params = ctx.message?.text?.split(" ")
     //check for incorrect usage
-    if (!params || params?.length < 2) {
+    if (!params || params?.length < 3) {
       const message = `Usage template:
 
     */rule <Contract Address> <Minimum number of NFTs>*`
       return ctx.replyWithMarkdown(message)
     }
+
+    console.log("params:", params)
+
     bot.context.contractAddress = params[1]
-    bot.context.minNft = Number(params[2])
-    syncBotInfo(bot)
+    bot.context.minNft = params[2]
+    bot.context = await syncBotInfo(bot)
+    console.log("---bot.context=", bot.context)
     // save data to db
     console.log(
       "save Rule groupId,nftType:",
@@ -240,7 +273,7 @@ exports.registerHandlers = async (bot) => {
         `Please use "/start" and "Group Admin" to choose Group and NFT type`
       )
     }
-    const rules = await updateGroupRules({
+    const group = await updateGroupRules({
       chatId: ctx.chat.id,
       groupId: bot.context.groupId,
       network: bot.context.network,
@@ -249,13 +282,15 @@ exports.registerHandlers = async (bot) => {
       minNft: bot.context.minNft,
     })
     await ctx.reply("Congrats!!! Configuration added.")
-    viewGroupTokenConfig(ctx, bot.context.groupId, rules)
+    viewGroupTokenConfig(ctx, group)
   }
   async function getNftConfiguration(ctx) {
     console.log("command:", ctx.message.text)
     if (ctx.from.id !== ctx.chat.id) {
       return
     }
+    bot.context = await syncBotInfo(bot)
+    console.log("--bot.context=", bot.context)
     ctx.user.groups.filter(async (groupId) => {
       const group = await getGroupInfoById(groupId)
       const rules = []
@@ -264,7 +299,7 @@ exports.registerHandlers = async (bot) => {
         group.configurations.forEach((el) => {
           rules.push(el)
         })
-        viewGroupTokenConfig(ctx, group.groupId, rules)
+        viewGroupTokenConfig(ctx, group)
       }
     })
   }

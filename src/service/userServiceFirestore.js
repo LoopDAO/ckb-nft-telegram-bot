@@ -17,11 +17,11 @@ const {
 exports.getUserInfo = async (ctx) => {
   try {
     const chat = ctx.chat
-    if (chat.type === "private") {
+      if (chat.type === "private") {
       const sender = ctx.from
 
       let user = await getUser(ctx.chat?.id)
-      console.log("chat private getUserInfo user...", user)
+      //console.log("chat private getUserInfo user...", user)
       if (!user.exists) {
         u = {
           userId: sender.id,
@@ -35,7 +35,7 @@ exports.getUserInfo = async (ctx) => {
         console.log("save user...", u)
         return u
       }
-
+      
       return user?.data()
     } else {
       let user = await getUser(ctx.from?.id)
@@ -120,7 +120,7 @@ exports.updateGroupRules = async (data) => {
     group.configurations = newRules
     group.updatedAt = new Date()
     await updateGroup(groupId, group)
-    return newRules
+    return group
   } else {
     console.log("updateGroupRules error...")
   }
