@@ -3,8 +3,8 @@ const { registerStartMenu } = require("./registerStartMenu")
 const {
   getGroupInfoById,
   getInvitationByGroupId,
-    syncBotInfo,
-    updateGroup
+  syncBotInfo,
+  updateGroup,
 } = require("../firebase/index.ts")
 const {
   updateGroupRules,
@@ -13,7 +13,6 @@ const {
 
 exports.registerHandlers = async (bot) => {
   await registerStartMenu(bot)
-
   bot.action("setup", setupGroup)
   bot.action("config", configGroup)
 
@@ -38,7 +37,6 @@ exports.registerHandlers = async (bot) => {
       ])
     )
   }
-
   async function configGroup(ctx) {
     // how to get all of the groups that use the bot
     const groupList = ctx.user.groups.map((el, index) => [
@@ -49,13 +47,13 @@ exports.registerHandlers = async (bot) => {
     ])
     await ctx.telegram.sendMessage(
       ctx.user.chatId,
-      `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room.`,
+      `Please add me to the group as admin. Once added I'll help you to setup NFT holders chat room..`,
       {
         ...Markup.inlineKeyboard([
           ...groupList,
           [
             Markup.button.url(
-              `Add ${process.env.BOT_NAME} to Group`,
+              `Add ${process.env.BOT_NAME} to Group.`,
               `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
             ),
           ],
@@ -68,11 +66,11 @@ exports.registerHandlers = async (bot) => {
     condition = String(condition?.toLowerCase() === "and" ? "AND" : "OR")
     next = String(condition?.toLowerCase() === "and" ? "OR" : "AND")
     console.log("setRuleCondition:", condition)
-      if (bot.context.groupId === undefined) {
-          bot.context =await syncBotInfo(bot)
-        }
-      const group = await getGroupInfoById(bot.context.groupId)
-      console.log("setRuleCondition:", group,bot.context)
+    if (bot.context.groupId === undefined) {
+      bot.context = await syncBotInfo(bot)
+    }
+    const group = await getGroupInfoById(bot.context.groupId)
+    console.log("setRuleCondition:", group, bot.context)
     group.condition = condition
     updateGroup(group.groupId, group)
 
@@ -86,9 +84,10 @@ exports.registerHandlers = async (bot) => {
       ]),
     })
   }
+
   async function showGroupInfo(ctx) {
     // get a specific group info
-    const message = `Please choose from options below
+    const message = `The current group has been set to：
 
     Group Id: ${ctx.match[1]}
     Group Name: ${ctx.match[2]}
@@ -173,7 +172,8 @@ exports.registerHandlers = async (bot) => {
     )
   }
   async function viewGroupTokenConfig(ctx, group) {
-    const ruleList = group.configurations.map((el, index) => [
+    console.log("viewGroupTokenConfig group:", group)
+    const ruleList = group.configurations?.map((el, index) => [
       Markup.button.callback(
         `❎ Delete Config ${index + 1}`,
         `deleteConfig::${group.groupId}::${index}`
@@ -188,16 +188,14 @@ exports.registerHandlers = async (bot) => {
       NFT Address: <pre style="color: #ff5500">${el.address}</pre>
       Min NFT: <b>${el.minQuantity}</b>`
       })
-      .join(
-        `\n <pre style="color: #ff5500">---${group.condition}---</pre> \n`
-      )
+      .join(`\n <pre style="color: #ff5500">---${group.condition}---</pre> \n`)
 
-    const groupX = ctx.user.groups.filter((el) => el.groupId === group.groupId)[0]
-
-    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${groupX?.invitationCode}`
+    
+    const invitationCode = await getInvitationByGroupId(group.groupId)
+    const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${invitationCode}`
 
     // doc: https://core.telegram.org/bots/api#formatting-options
-    const message = `Here is NFT Permissioned Chat configuration for <b>${bot.context.groupName}</b>
+    const message = `Here is NFT Permissioned Chat configuration for <b>${group.groupName}</b>
   Invite others using <a href="${invitationLink}">Invitation Link</a>
 
   Below is list of current configuration.
@@ -238,9 +236,7 @@ exports.registerHandlers = async (bot) => {
 
   bot.command("/rule", setNftConfiguration)
 
-  bot.command("/group", showGroupInfo)
-
-  bot.command("/rules", getNftConfiguration)
+  bot.command("/group", showCurGroupInfo)
 
   async function setNftConfiguration(ctx) {
     console.log("command:", ctx.message.text)
@@ -284,24 +280,23 @@ exports.registerHandlers = async (bot) => {
     await ctx.reply("Congrats!!! Configuration added.")
     viewGroupTokenConfig(ctx, group)
   }
-  async function getNftConfiguration(ctx) {
-    console.log("command:", ctx.message.text)
+  async function showCurGroupInfo(ctx) {
+    console.log(
+      "command:",
+      ctx.message.text,
+      ctx.from.id,
+      ctx.chat.id,
+      ctx.user.userId
+    )
     if (ctx.from.id !== ctx.chat.id) {
       return
     }
+    bot.context.userId = ctx.from.id
     bot.context = await syncBotInfo(bot)
     console.log("--bot.context=", bot.context)
-    ctx.user.groups.filter(async (groupId) => {
-      const group = await getGroupInfoById(groupId)
-      const rules = []
-      if (group.configurations) {
-        console.log("groupName:", group.groupName)
-        group.configurations.forEach((el) => {
-          rules.push(el)
-        })
-        viewGroupTokenConfig(ctx, group)
-      }
-    })
+
+    const group = await getGroupInfoById(bot.context.groupId)
+    viewGroupTokenConfig(ctx, group)
   }
   // when a user wants to chat with this bot through invitation link
   // https://core.telegram.org/bots#deep-linking

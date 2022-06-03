@@ -58,6 +58,7 @@ exports.registerStartMenu = async (bot) => {
             Markup.inlineKeyboard([Markup.button.url(`Connect`, url)])
           )
         } else {
+            console.log("group not found:", startPayload)
           return ctx.reply("Group not found.")
         }
       }
@@ -117,7 +118,7 @@ exports.registerStartMenu = async (bot) => {
             ...groupList,
           [
             Markup.button.url(
-              `Add ${process.env.BOT_NAME} to Group`,
+              `Add ${process.env.BOT_NAME} to Group...`,
               `https://t.me/${process.env.BOT_USER_NAME}?startgroup=c`
             ),
           ],
@@ -144,6 +145,7 @@ exports.registerStartMenu = async (bot) => {
             /start - start bot
             /rules - show group rules
             /rule - add group rule ex: /rule 0x123456 100
+            /group - show current group info
             /settings - show settings command list
             /help - show help
             ${statueText}`)
