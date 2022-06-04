@@ -1,13 +1,13 @@
 
 # start telegram bot
 
-## 1.create .env
+## 1.create .env examples:.env.dev
 Required:
        
 * BOT_TOKEN,BOT_USER_NAME:Use botfather to get through the command /newbot
 * SERVER_URL: Is the access URL of this program
 * FIRESTORE_ENABLE=true to enable firestore 
-## 2.create firebase.json
+## 2.create firebase.json examples:.firebase-ex.json
 > path:src/firebase/firebase.json 
 
 Reference：
