@@ -143,7 +143,6 @@ exports.registerStartMenu = async (bot) => {
 
     await ctx.reply(`command list:\n
             /start - start bot
-            /rules - show group rules
             /rule - add group rule ex: /rule 0x123456 100
             /group - show current group info
             /settings - show settings command list
