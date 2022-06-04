@@ -26,6 +26,6 @@ send message to telegram bot:
     3. click ‘Add *** to Group...’
     4. select your Group and click 'Add Bot as Admin'
     5. Return to chat window with Telegram BOT and click "Group Admin" select "*** Group"
-    6. Using command to add ‘rule: /rule 0x*** 1’
+    6. Using command to add rule: '/rule 0x*** 1’
     7. Use /group to get 'Invitation Link' and then send it to the user
 Use ‘/help’ for more information
