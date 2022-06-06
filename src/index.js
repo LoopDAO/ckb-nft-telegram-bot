@@ -11,7 +11,7 @@ const { validateSignature, getWalletAddress } = require('./utils')
 const cron = require('node-cron')
 const cota = require('./service/cotaService')
 const {isFirestoreAvialable} = require('./firebase/index.ts')
-  
+
 const token = process.env.BOT_TOKEN
 if (token === undefined) {
     throw new Error('BOT_TOKEN must be provided!')
@@ -36,7 +36,7 @@ console.log('secretPath...',secretPath)
 async function mainService() {
     if (process.env.FIRESTORE_ENABLE) {
         if (!(await isFirestoreAvialable())) {
-            console.err('Firestore is not available!')
+            console.error('Firestore is not available!')
             return
         }
         console.log('Connected to Firestore!')
@@ -109,7 +109,7 @@ app.get('/api/wallet', async (req, res) => {
          send below message to a user who wanna join when bot is checking if the user's address has required nfts. Here will use ckb api to do the job
         */
             await bot.telegram.sendMessage(userId, 'Processing!!! Please wait...')
-            
+
             const cotaCount = await cota.isQualified(address, groupId)
             if (cotaCount) {
                 await saveMemberInfo({ ...decoded, walletAddress: address })
