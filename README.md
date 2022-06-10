@@ -29,3 +29,10 @@ send message to telegram bot:
     6. Using command to add rule: '/rule 0x*** 1’
     7. Use /group to get 'Invitation Link' and then send it to the user
 Use ‘/help’ for more information
+
+## Required environment
+node version: "^12.20.0 || >=14.13.1"
+firestroe index：
+       Groups -》 groupId
+       Users -》userId
+       Invitations -》groupId
