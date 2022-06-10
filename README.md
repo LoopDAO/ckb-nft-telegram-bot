@@ -31,8 +31,8 @@ send message to telegram bot:
 Use ‘/help’ for more information
 
 ## Required environment
-node version: "^12.20.0 || >=14.13.1"
-firestroe index：
+- node version: "^12.20.0 || >=14.13.1"
+- firestroe index：
        Groups -》 groupId
        Users -》userId
        Invitations -》groupId
