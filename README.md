@@ -49,7 +49,7 @@ LISTEN_PORT=3000
 
 ### 2. Config firebase
 
-Fist, generate a private key file for your service account:
+First, generate a private key file for your service account:
 1. In the Firebase console, open Settings > [Service Accounts](https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk).
 2. Click Generate New Private Key, then confirm by clicking Generate Key.
 3. Securely store the JSON file containing the key.
