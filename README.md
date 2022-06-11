@@ -127,3 +127,5 @@ Use `Set all rules condition to "And"` and `Set all rules condition to "OR"` to 
 
 ![2022-06-11 at 19 00](https://user-images.githubusercontent.com/1963646/173185127-9236a55b-c855-4e4c-85e1-52dbbb5f7669.png)
 
+## License
+MIT
