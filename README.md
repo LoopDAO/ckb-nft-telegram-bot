@@ -4,6 +4,9 @@
 This project is a telegram bot used as a gate keeper of telegram group.
 
 ## Features
+
+Note: Currently it only supports NFT issued by [CoTA SDK](https://github.com/nervina-labs/cota-sdk-js)
+
 Admin
 - Setup rules of NFT holdings
 - Support multiple NFT addresses, use `OR` and `And` command to specify
