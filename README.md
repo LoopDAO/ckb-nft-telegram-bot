@@ -58,13 +58,13 @@ More information refer to [this document](https://firebase.google.com/docs/admin
 
 Then, save the file, name the file as `firebase.json` and put it into `src/firebase/` folder
 
-### 3.Start bot service
+### 3. Start bot service
 
 ```bash
 yarn start
 ```
 
-### 4.Invite members to group
+### 4. Invite members to group
 send message to telegram bot:
 
     1. /start 
