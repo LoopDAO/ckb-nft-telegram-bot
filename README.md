@@ -61,6 +61,10 @@ More information refer to [this document](https://firebase.google.com/docs/admin
 
 Then, save the file, name the file as `firebase.json` and put it into `src/firebase/` folder
 
+Note：After generating data, Storage needs to set the index BOT to run normally
+![image](https://user-images.githubusercontent.com/3693411/173608003-e8a819c1-128a-424a-8bd7-fc50acaddd8a.png)
+
+
 ### 3. Start bot service
 
 ```bash
