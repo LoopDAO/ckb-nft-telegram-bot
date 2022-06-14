@@ -61,7 +61,7 @@ More information refer to [this document](https://firebase.google.com/docs/admin
 
 Then, save the file, name the file as `firebase.json` and put it into `src/firebase/` folder
 
-Note：After the data is generated, the index needs to be set for storage before the robot can operate normally
+Note：After the data is saved, the index needs to be set for storage before the robot can operate normally by clicking `Single field` button.
 ![image](https://user-images.githubusercontent.com/3693411/173608003-e8a819c1-128a-424a-8bd7-fc50acaddd8a.png)
 
 
