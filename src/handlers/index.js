@@ -173,6 +173,10 @@ exports.registerHandlers = async (bot) => {
   }
   async function viewGroupTokenConfig(ctx, group) {
     console.log("viewGroupTokenConfig group:", group)
+      if (!group) { 
+        await ctx.reply("group not found")
+          return
+      } 
     const ruleList = group.configurations?.map((el, index) => [
       Markup.button.callback(
         `❎ Delete Config ${index + 1}`,
@@ -190,7 +194,6 @@ exports.registerHandlers = async (bot) => {
       })
       .join(`\n <pre style="color: #ff5500">---${group.condition}---</pre> \n`)
 
-    
     const invitationCode = await getInvitationByGroupId(group.groupId)
     const invitationLink = `https://t.me/${process.env.BOT_USER_NAME}?start=${invitationCode}`
 
